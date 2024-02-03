@@ -5,9 +5,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/iki-rumondor/go-monev/internal/config"
-	"github.com/iki-rumondor/go-monev/internal/http/routes"
-	"github.com/iki-rumondor/go-monev/internal/migrate"
+	"github.com/iki-rumondor/sips/internal/config"
+	"github.com/iki-rumondor/sips/internal/http/routes"
+	"github.com/iki-rumondor/sips/internal/migrate"
 )
 
 func main() {

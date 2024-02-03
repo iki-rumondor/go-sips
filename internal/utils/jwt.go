@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt"
-	"github.com/iki-rumondor/go-monev/internal/http/response"
+	"github.com/iki-rumondor/sips/internal/http/response"
 )
 
 var secretKey = "fabsence"
@@ -15,12 +15,11 @@ type JwtClaims struct {
 	jwt.StandardClaims
 }
 
-func GenerateToken(UserUuid string, role string) (string, error) {
+func GenerateToken(UserUuid string) (string, error) {
 
 	expireTime := time.Now().Add(time.Duration(1) * 24 * time.Hour)
 	claims := &JwtClaims{
 		UserUuid: UserUuid,
-		Role:     role,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expireTime.Unix(),
 		},

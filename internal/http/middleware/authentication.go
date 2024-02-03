@@ -5,8 +5,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
-	"github.com/iki-rumondor/go-monev/internal/http/response"
-	"github.com/iki-rumondor/go-monev/internal/utils"
+	"github.com/iki-rumondor/sips/internal/http/response"
+	"github.com/iki-rumondor/sips/internal/utils"
 )
 
 func IsValidJWT() gin.HandlerFunc {

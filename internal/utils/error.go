@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/iki-rumondor/go-monev/internal/http/response"
+	"github.com/iki-rumondor/sips/internal/http/response"
 )
 
 func HandleError(c *gin.Context, err error) {

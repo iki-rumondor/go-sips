@@ -1,10 +1,10 @@
 package middleware
 
 import (
-	"github.com/golang-jwt/jwt"
 	"github.com/gin-gonic/gin"
-	"github.com/iki-rumondor/go-monev/internal/http/response"
-	"github.com/iki-rumondor/go-monev/internal/utils"
+	"github.com/golang-jwt/jwt"
+	"github.com/iki-rumondor/sips/internal/http/response"
+	"github.com/iki-rumondor/sips/internal/utils"
 )
 
 func IsRole(role string) gin.HandlerFunc {

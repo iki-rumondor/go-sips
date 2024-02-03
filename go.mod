@@ -1,4 +1,4 @@
-module github.com/iki-rumondor/go-monev
+module github.com/iki-rumondor/sips
 
 go 1.21.0
 
