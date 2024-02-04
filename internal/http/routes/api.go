@@ -4,6 +4,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/iki-rumondor/sips/internal/config"
+	"github.com/iki-rumondor/sips/internal/http/middleware"
 )
 
 func StartServer(handlers *config.Handlers) *gin.Engine {
@@ -21,28 +22,16 @@ func StartServer(handlers *config.Handlers) *gin.Engine {
 	public := router.Group("api")
 	{
 		public.POST("signin", handlers.AdminHandler.SignIn)
-
 	}
 
-	// admin := router.Group("api").Use(middleware.IsValidJWT(), middleware.IsRole("ADMIN"))
-	// {
-	// 	admin.POST("majors", handlers.MajorHandler.CreateMajor)
-	// 	admin.GET("majors", handlers.MajorHandler.GetAllMajors)
-	// 	admin.GET("majors/:uuid", handlers.MajorHandler.GetMajor)
-	// 	admin.PUT("majors/:uuid", handlers.MajorHandler.UpdateMajor)
-	// 	admin.DELETE("majors/:uuid", handlers.MajorHandler.DeleteMajor)
-
-	// 	admin.POST("departments", handlers.DepartmentHandler.CreateDepartment)
-	// 	admin.GET("departments", handlers.DepartmentHandler.GetAllDepartments)
-	// 	admin.GET("departments/:uuid", handlers.DepartmentHandler.GetDepartment)
-	// 	admin.PUT("departments/:uuid", handlers.DepartmentHandler.UpdateDepartment)
-	// 	admin.DELETE("departments/:uuid", handlers.DepartmentHandler.DeleteDepartment)
-
-	// 	admin.POST("academic-years", handlers.AcademicYearHandler.CreateAcademicYear)
-	// 	admin.PUT("academic-years/:uuid", handlers.AcademicYearHandler.UpdateAcademicYear)
-	// 	admin.DELETE("academic-years/:uuid", handlers.AcademicYearHandler.DeleteAcademicYear)
-
-	// }
+	admin := router.Group("api").Use(middleware.IsValidJWT())
+	{
+		admin.POST("mahasiswa/import", handlers.MahasiswaHandler.Import)
+		admin.GET("mahasiswa", handlers.MahasiswaHandler.GetAll)
+		admin.GET("mahasiswa/:uuid", handlers.MahasiswaHandler.Get)
+		admin.PUT("mahasiswa/:uuid", handlers.MahasiswaHandler.Update)
+		admin.DELETE("mahasiswa/:uuid", handlers.MahasiswaHandler.Delete)
+	}
 
 	return router
 }

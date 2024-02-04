@@ -49,3 +49,4 @@ func (s *AdminService) VerifyAdmin(req *request.SignIn) (string, error) {
 
 	return jwt, nil
 }
+

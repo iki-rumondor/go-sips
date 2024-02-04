@@ -7,7 +7,7 @@ import (
 
 type Kelas struct {
 	ID            uint   `gorm:"primaryKey"`
-	Uuid          string `gorm:"not_null;unique;size:16"`
+	Uuid          string `gorm:"not_null;unique;size:64"`
 	TahunAjaranID uint   `gorm:"not_null"`
 	MahasiswaID   uint   `gorm:"not_null"`
 	CreatedAt     int64  `gorm:"autoCreateTime:milli"`

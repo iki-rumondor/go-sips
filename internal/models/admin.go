@@ -8,7 +8,7 @@ import (
 
 type Admin struct {
 	ID        uint   `gorm:"primaryKey"`
-	Uuid      string `gorm:"not_null,unique;size:16"`
+	Uuid      string `gorm:"not_null,unique;size:64"`
 	Username  string `gorm:"not_null;size:16"`
 	Password  string `gorm:"not_null;size:64"`
 	CreatedAt int64  `gorm:"autoCreateTime:milli"`

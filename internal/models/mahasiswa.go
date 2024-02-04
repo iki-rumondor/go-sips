@@ -7,13 +7,13 @@ import (
 
 type Mahasiswa struct {
 	ID          uint    `gorm:"primaryKey"`
-	Uuid        string  `gorm:"not_null;size:16"`
+	Uuid        string  `gorm:"not_null;size:64"`
 	Nim         string  `gorm:"not_null;unique;size:9"`
 	Nama        string  `gorm:"not_null;size:64"`
-	Angkatan    uint    `gorm:"not_null;size:4"`
-	TotalSks    byte    `gorm:"not_null;size:3"`
-	IPK         float32 `gorm:"not_null;size:3"`
-	JumlahError byte    `gorm:"not_null;size:3"`
+	Angkatan    uint    `gorm:"not_null;"`
+	TotalSks    uint    `gorm:"not_null;"`
+	Ipk         float64 `gorm:"not_null;"`
+	JumlahError uint    `gorm:"not_null;"`
 	CreatedAt   int64   `gorm:"autoCreateTime:milli"`
 	UpdatedAt   int64   `gorm:"autoCreateTime:milli;autoUpdateTime:milli"`
 }

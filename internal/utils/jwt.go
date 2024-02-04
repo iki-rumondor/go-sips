@@ -7,7 +7,7 @@ import (
 	"github.com/iki-rumondor/sips/internal/http/response"
 )
 
-var secretKey = "fabsence"
+var secretKey = "sisp-ir"
 
 type JwtClaims struct {
 	UserUuid string `json:"uuid"`

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/iki-rumondor/sips/internal/models"
 	"gorm.io/gorm"
 )
 
@@ -28,11 +29,17 @@ func freshDatabase(db *gorm.DB) error {
 			return err
 		}
 	}
+
 	for _, model := range GetAllModels() {
 		if err := db.Debug().AutoMigrate(model.Model); err != nil {
 			return err
 		}
 	}
+
+	db.Create(&models.Admin{
+		Username: "admin",
+		Password: "123",
+	})
 
 	return nil
 }

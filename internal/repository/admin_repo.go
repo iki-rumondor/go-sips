@@ -20,7 +20,7 @@ func NewAdminRepository(db *gorm.DB) interfaces.AdminRepoInterface {
 
 func (r *AdminRepository) FindAdminBy(column string, value interface{}) (*models.Admin, error) {
 	var model models.Admin
-	if err := r.db.Preload("Role").First(&model, fmt.Sprintf("%s = ?", column), value).Error; err != nil {
+	if err := r.db.First(&model, fmt.Sprintf("%s = ?", column), value).Error; err != nil {
 		return nil, err
 	}
 	return &model, nil

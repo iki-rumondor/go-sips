@@ -7,7 +7,7 @@ import (
 
 type TahunAjaran struct {
 	ID        uint   `gorm:"primaryKey"`
-	Uuid      string `gorm:"not_null;unique;size:16"`
+	Uuid      string `gorm:"not_null;unique;size:64"`
 	Tahun     uint   `gorm:"not_null;size:4"`
 	Semester  string `gorm:"not_null;size:5"`
 	CreatedAt int64  `gorm:"autoCreateTime:milli"`
