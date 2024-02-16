@@ -8,11 +8,9 @@ import (
 type Percepatan struct {
 	ID            uint   `gorm:"primaryKey"`
 	Uuid          string `gorm:"not_null;unique;size:64"`
-	TahunAjaranID uint   `gorm:"not_null"`
 	MahasiswaID   uint   `gorm:"not_null"`
 	CreatedAt     int64  `gorm:"autoCreateTime:milli"`
 	UpdatedAt     int64  `gorm:"autoCreateTime:milli;autoUpdateTime:milli"`
-	TahunAjaran   *TahunAjaran
 	Mahasiswa     *Mahasiswa
 }
 

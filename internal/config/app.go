@@ -9,8 +9,9 @@ import (
 )
 
 type Handlers struct {
-	AdminHandler     interfaces.AdminHandlerInterface
-	MahasiswaHandler interfaces.MahasiswaHandlerInterface
+	AdminHandler       interfaces.AdminHandlerInterface
+	MahasiswaHandler   interfaces.MahasiswaHandlerInterface
+	TahunAjaranHandler interfaces.TahunAjaranHandlerInterface
 }
 
 func GetAppHandlers(db *gorm.DB) *Handlers {
@@ -23,8 +24,13 @@ func GetAppHandlers(db *gorm.DB) *Handlers {
 	mahasiswa_service := services.NewMahasiswaService(mahasiswa_repo)
 	mahasiswa_handler := handlers.NewMahasiswaHandler(mahasiswa_service)
 
+	tahun_ajaran_repo := repository.NewTahunAjaranRepository(db)
+	tahun_ajaran_service := services.NewTahunAjaranService(tahun_ajaran_repo)
+	tahun_ajaran_handler := handlers.NewTahunAjaranHandler(tahun_ajaran_service)
+
 	return &Handlers{
-		AdminHandler: admin_handler,
-		MahasiswaHandler: mahasiswa_handler,
+		AdminHandler:       admin_handler,
+		MahasiswaHandler:   mahasiswa_handler,
+		TahunAjaranHandler: tahun_ajaran_handler,
 	}
 }

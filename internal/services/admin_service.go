@@ -3,10 +3,12 @@ package services
 import (
 	"errors"
 	"log"
+	"strconv"
 
 	"github.com/iki-rumondor/sips/internal/http/request"
 	"github.com/iki-rumondor/sips/internal/http/response"
 	"github.com/iki-rumondor/sips/internal/interfaces"
+	"github.com/iki-rumondor/sips/internal/models"
 	"github.com/iki-rumondor/sips/internal/utils"
 	"gorm.io/gorm"
 )
@@ -50,3 +52,38 @@ func (s *AdminService) VerifyAdmin(req *request.SignIn) (string, error) {
 	return jwt, nil
 }
 
+func (s *AdminService) SetMahasiswaPercepatan(req *request.PercepatanCond) error {
+	angkatan, _ := strconv.Atoi(req.Angkatan)
+	totalSks, _ := strconv.Atoi(req.TotalSks)
+	jumlahError, _ := strconv.Atoi(req.JumlahError)
+
+	ipk, err := utils.StringToFloat(req.Ipk)
+	if err != nil {
+		return response.BADREQ_ERR("Nilai Ipk Tidak Valid")
+	}
+
+	mahasiswa, err := s.Repo.FindMahasiswaByRule(ipk, uint(totalSks), uint(jumlahError), uint(angkatan))
+	if err != nil {
+		return response.SERVICE_INTERR
+	}
+
+	if len(*mahasiswa) == 0 {
+		return response.NOTFOUND_ERR("Mahasiswa Dengan Kriteria Tersebut Tidak Ditemukan")
+	}
+
+	if err := s.Repo.CreateMahasiswaPercepatan(mahasiswa); err != nil {
+		return response.SERVICE_INTERR
+	}
+
+	return nil
+}
+
+func (s *AdminService) GetMahasiswaPercepatan() (*[]models.Percepatan, error) {
+	result, err := s.Repo.FindMahasiswaPercepatan()
+	if err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
+	return result, nil
+}

@@ -31,6 +31,15 @@ func StartServer(handlers *config.Handlers) *gin.Engine {
 		admin.GET("mahasiswa/:uuid", handlers.MahasiswaHandler.Get)
 		admin.PUT("mahasiswa/:uuid", handlers.MahasiswaHandler.Update)
 		admin.DELETE("mahasiswa/:uuid", handlers.MahasiswaHandler.Delete)
+
+		admin.POST("tahun_ajaran", handlers.TahunAjaranHandler.Create)
+		admin.GET("tahun_ajaran", handlers.TahunAjaranHandler.GetAll)
+		admin.GET("tahun_ajaran/:uuid", handlers.TahunAjaranHandler.Get)
+		admin.PUT("tahun_ajaran/:uuid", handlers.TahunAjaranHandler.Update)
+		admin.DELETE("tahun_ajaran/:uuid", handlers.TahunAjaranHandler.Delete)
+
+		admin.GET("percepatan", handlers.AdminHandler.GetMahasiswaPercepatan)
+		admin.POST("percepatan", handlers.AdminHandler.SetMahasiswaPercepatan)
 	}
 
 	return router

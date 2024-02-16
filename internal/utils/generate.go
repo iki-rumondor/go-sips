@@ -1,7 +1,9 @@
 package utils
 
 import (
+	"fmt"
 	"math/rand"
+	"strconv"
 	"time"
 )
 
@@ -14,4 +16,20 @@ func GenerateRandomString(length int) string {
 		b[i] = charset[seededRand.Intn(len(charset))]
 	}
 	return string(b)
+}
+
+func StringToFloat(numString string) (float64, error) {
+	num, err := strconv.ParseFloat(numString, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	formattedFloat := fmt.Sprintf("%.2f", num)
+
+	result, err := strconv.ParseFloat(formattedFloat, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	return result, nil
 }
