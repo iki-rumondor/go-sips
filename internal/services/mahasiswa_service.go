@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"math"
 	"strconv"
@@ -24,7 +25,15 @@ func NewMahasiswaService(repo interfaces.MahasiswaRepoInterface) interfaces.Maha
 	}
 }
 
-func (s *MahasiswaService) ImportMahasiswa(pathFile string) (*[]response.FailedImport, error) {
+func (s *MahasiswaService) ImportMahasiswa(pembimbingUuid, pathFile string) (*[]response.FailedImport, error) {
+	var pembimbing models.PembimbingAkademik
+	condition := fmt.Sprintf("uuid = '%s'", pembimbingUuid)
+
+	if err := s.Repo.First(&pembimbing, condition); err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
 	f, err := excelize.OpenFile(pathFile)
 	if err != nil {
 		log.Println("Gagal Membuka File")
@@ -83,12 +92,18 @@ func (s *MahasiswaService) ImportMahasiswa(pathFile string) (*[]response.FailedI
 		}
 
 		mahasiswa := models.Mahasiswa{
-			Nim:         cols[0],
-			Nama:        cols[1],
-			Angkatan:    uint(angkatan),
-			TotalSks:    uint(totalSks),
-			Ipk:         math.Round(ipk*100) / 100,
-			JumlahError: uint(jumlahError),
+			Pengguna: &models.Pengguna{
+				Username: cols[0],
+				Password: cols[0],
+				RoleID:   2,
+			},
+			PembimbingAkademikID: pembimbing.ID,
+			Nim:                  cols[0],
+			Nama:                 cols[1],
+			Angkatan:             uint(angkatan),
+			TotalSks:             uint(totalSks),
+			Ipk:                  math.Round(ipk*100) / 100,
+			JumlahError:          uint(jumlahError),
 		}
 
 		if err := s.Repo.CreateMahasiswa(&mahasiswa); err != nil {
@@ -104,8 +119,9 @@ func (s *MahasiswaService) ImportMahasiswa(pathFile string) (*[]response.FailedI
 	return &failedImport, nil
 }
 
-func (s *MahasiswaService) GetAllMahasiswa() (*[]models.Mahasiswa, error) {
-	result, err := s.Repo.FindAllMahasiswa()
+func (s *MahasiswaService) GetAllMahasiswa(options map[string]string) (*[]models.Mahasiswa, error) {
+	condition := fmt.Sprintf("angkatan LIKE '%%%s%%' AND class LIKE '%%%s%%'", options["angkatan"], options["class"])
+	result, err := s.Repo.FindAllMahasiswa(condition)
 	if err != nil {
 		log.Println(err.Error())
 		return nil, response.SERVICE_INTERR
@@ -128,6 +144,14 @@ func (s *MahasiswaService) GetMahasiswa(uuid string) (*models.Mahasiswa, error) 
 }
 
 func (s *MahasiswaService) UpdateMahasiswa(uuid string, req *request.Mahasiswa) error {
+	var pembimbing models.PembimbingAkademik
+	condition := fmt.Sprintf("uuid = '%s'", req.PembimbingUuid)
+
+	if err := s.Repo.First(&pembimbing, condition); err != nil {
+		log.Println(err.Error())
+		return response.SERVICE_INTERR
+	}
+
 	result, err := s.GetMahasiswa(uuid)
 	if err != nil {
 		return err
@@ -139,13 +163,14 @@ func (s *MahasiswaService) UpdateMahasiswa(uuid string, req *request.Mahasiswa) 
 	jumlahError, _ := strconv.Atoi(req.JumlahError)
 
 	model := models.Mahasiswa{
-		ID:          result.ID,
-		Nim:         req.Nim,
-		Nama:        req.Nama,
-		Angkatan:    uint(angkatan),
-		TotalSks:    uint(totalSks),
-		Ipk:         ipk,
-		JumlahError: uint(jumlahError),
+		PembimbingAkademikID: pembimbing.ID,
+		ID:                   result.ID,
+		Nim:                  req.Nim,
+		Nama:                 req.Nama,
+		Angkatan:             uint(angkatan),
+		TotalSks:             uint(totalSks),
+		Ipk:                  ipk,
+		JumlahError:          uint(jumlahError),
 	}
 
 	if err := s.Repo.UpdateMahasiswa(&model); err != nil {
@@ -162,11 +187,7 @@ func (s *MahasiswaService) DeleteMahasiswa(uuid string) error {
 		return err
 	}
 
-	model := models.Mahasiswa{
-		ID: result.ID,
-	}
-
-	if err := s.Repo.DeleteMahasiswa(&model); err != nil {
+	if err := s.Repo.DeleteMahasiswa(result); err != nil {
 		if errors.Is(err, gorm.ErrForeignKeyViolated) {
 			return response.VIOLATED_ERR
 		}
@@ -175,3 +196,178 @@ func (s *MahasiswaService) DeleteMahasiswa(uuid string) error {
 
 	return nil
 }
+
+func (s *MahasiswaService) GetDataMahasiswa(nim string) (*response.DataMahasiswa, error) {
+	result, err := s.Repo.FindBy("mahasiswa", "nim", nim)
+	if err != nil {
+		log.Println(err.Error())
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, response.NOTFOUND_ERR("Mahasiswa Dengan NIM Tersebut Tidak Ditemukan")
+		}
+		return nil, response.SERVICE_INTERR
+	}
+
+	resp := response.DataMahasiswa{
+		Nim:         result["nim"].(string),
+		Nama:        result["nama"].(string),
+		Angkatan:    fmt.Sprintf("%d", result["angkatan"]),
+		Ipk:         fmt.Sprintf("%.2f", result["ipk"]),
+		TotalSks:    fmt.Sprintf("%d", result["total_sks"]),
+		JumlahError: fmt.Sprintf("%d", result["jumlah_error"]),
+		CreatedAt:   result["created_at"].(int64),
+	}
+
+	return &resp, nil
+}
+
+func (s *MahasiswaService) GetMahasiswaByUserUuid(userUuid string) (*response.Mahasiswa, error) {
+	var user models.Pengguna
+	condition := fmt.Sprintf("uuid = '%s'", userUuid)
+	if err := s.Repo.First(&user, condition); err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
+	var result models.Mahasiswa
+	condition = fmt.Sprintf("id = '%d'", user.Mahasiswa.ID)
+	if err := s.Repo.First(&result, condition); err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
+	percepatan := true
+
+	condition = fmt.Sprintf("mahasiswa_id = '%d'", result.ID)
+	if err := s.Repo.First(&models.Percepatan{}, condition); err != nil {
+		percepatan = false
+	}
+
+	resp := response.Mahasiswa{
+		Uuid:        result.Uuid,
+		Nim:         result.Nim,
+		Nama:        result.Nama,
+		Kelas:       result.Class,
+		JumlahError: fmt.Sprintf("%d", result.JumlahError),
+		Angkatan:    fmt.Sprintf("%d", result.Angkatan),
+		Ipk:         fmt.Sprintf("%.2f", result.Ipk),
+		TotalSks:    fmt.Sprintf("%d", result.TotalSks),
+		Percepatan:  percepatan,
+		Pembimbing: &response.Pembimbing{
+			Uuid: result.PembimbingAkademik.Uuid,
+			Nama: result.PembimbingAkademik.Nama,
+			Nip:  result.PembimbingAkademik.Nip,
+		},
+	}
+
+	return &resp, nil
+}
+
+func (s *MahasiswaService) GetAllMahasiswaByPenasihat(userUuid string, options map[string]string) (*[]response.Mahasiswa, error) {
+	var user models.Pengguna
+	condition := fmt.Sprintf("uuid = '%s'", userUuid)
+	if err := s.Repo.First(&user, condition); err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
+	var penasihat models.PembimbingAkademik
+	condition = fmt.Sprintf("pengguna_id = '%d'", user.ID)
+	if err := s.Repo.First(&penasihat, condition); err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
+	var result []models.Mahasiswa
+
+	condition = fmt.Sprintf("pembimbing_akademik_id = '%d' AND angkatan LIKE '%%%s%%' AND class LIKE '%%%s%%'", penasihat.ID, options["angkatan"], options["class"])
+
+	if options["min_angkatan"] != "" {
+		condition = fmt.Sprintf("pembimbing_akademik_id = '%d' AND angkatan LIKE '%%%s%%' AND class LIKE '%%%s%%' AND angkatan > '%s'", penasihat.ID, options["angkatan"], options["class"], options["min_angkatan"])
+	}
+
+	if err := s.Repo.Find(&result, condition, "nim"); err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
+	var resp []response.Mahasiswa
+	for _, item := range result {
+		percepatan := true
+
+		condition = fmt.Sprintf("mahasiswa_id = '%d'", item.ID)
+		if err := s.Repo.First(&models.Percepatan{}, condition); err != nil {
+			percepatan = false
+		}
+
+		resp = append(resp, response.Mahasiswa{
+			Uuid:        item.Uuid,
+			Nim:         item.Nim,
+			Nama:        item.Nama,
+			Kelas:       item.Class,
+			JumlahError: fmt.Sprintf("%d", item.JumlahError),
+			Angkatan:    fmt.Sprintf("%d", item.Angkatan),
+			Ipk:         fmt.Sprintf("%.2f", item.Ipk),
+			TotalSks:    fmt.Sprintf("%d", item.TotalSks),
+			Percepatan:  percepatan,
+			Pembimbing: &response.Pembimbing{
+				Uuid: item.PembimbingAkademik.Uuid,
+				Nama: item.PembimbingAkademik.Nama,
+				Nip:  item.PembimbingAkademik.Nip,
+			},
+		})
+	}
+
+	return &resp, nil
+}
+
+// func (s *MahasiswaService) GetPercepatanByPenasihat(userUuid string) (*[]response.Mahasiswa, error) {
+// 	var user models.Pengguna
+// 	condition := fmt.Sprintf("uuid = '%s'", userUuid)
+// 	if err := s.Repo.First(&user, condition); err != nil {
+// 		log.Println(err.Error())
+// 		return nil, response.SERVICE_INTERR
+// 	}
+
+// 	var penasihat models.PembimbingAkademik
+// 	condition = fmt.Sprintf("pengguna_id = '%d'", user.ID)
+// 	if err := s.Repo.First(&penasihat, condition); err != nil {
+// 		log.Println(err.Error())
+// 		return nil, response.SERVICE_INTERR
+// 	}
+
+// 	var result []models.Percepatan
+
+// 	if err := s.Repo.FindPercepatanPenasihat(&result); err != nil {
+// 		log.Println(err.Error())
+// 		return nil, response.SERVICE_INTERR
+// 	}
+
+// 	var resp []response.Mahasiswa
+// 	for _, item := range result {
+// 		percepatan := true
+
+// 		condition = fmt.Sprintf("mahasiswa_id = '%d'", item.ID)
+// 		if err := s.Repo.First(&models.Percepatan{}, condition); err != nil {
+// 			percepatan = false
+// 		}
+
+// 		resp = append(resp, response.Mahasiswa{
+// 			Uuid:        item.Uuid,
+// 			Nim:         item.Nim,
+// 			Nama:        item.Nama,
+// 			Kelas:       item.Class,
+// 			JumlahError: fmt.Sprintf("%d", item.JumlahError),
+// 			Angkatan:    fmt.Sprintf("%d", item.Angkatan),
+// 			Ipk:         fmt.Sprintf("%.2f", item.Ipk),
+// 			TotalSks:    fmt.Sprintf("%d", item.TotalSks),
+// 			Percepatan:  percepatan,
+// 			Pembimbing: &response.Pembimbing{
+// 				Uuid: item.PembimbingAkademik.Uuid,
+// 				Nama: item.PembimbingAkademik.Nama,
+// 				Nip:  item.PembimbingAkademik.Nip,
+// 			},
+// 		})
+// 	}
+
+// 	return &resp, nil
+// }

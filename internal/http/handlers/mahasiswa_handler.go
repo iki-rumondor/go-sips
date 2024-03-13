@@ -25,6 +25,11 @@ func NewMahasiswaHandler(service interfaces.MahasiswaServiceInterface) interface
 }
 
 func (h *MahasiswaHandler) Import(c *gin.Context) {
+	pembimbingUuid := c.PostForm("pembimbing_uuid")
+	if pembimbingUuid == "" {
+		utils.HandleError(c, response.BADREQ_ERR("Pembimbing Tidak Ditemukan"))
+		return
+	}
 	file, err := c.FormFile("mahasiswa")
 	if err != nil {
 		utils.HandleError(c, response.NOTFOUND_ERR("File Tidak Ditemukan"))
@@ -49,7 +54,7 @@ func (h *MahasiswaHandler) Import(c *gin.Context) {
 		}
 	}()
 
-	failedImport, err := h.Service.ImportMahasiswa(pathFile)
+	failedImport, err := h.Service.ImportMahasiswa(pembimbingUuid, pathFile)
 	if err != nil {
 		utils.HandleError(c, err)
 		return
@@ -59,7 +64,14 @@ func (h *MahasiswaHandler) Import(c *gin.Context) {
 }
 
 func (h *MahasiswaHandler) GetAll(c *gin.Context) {
-	result, err := h.Service.GetAllMahasiswa()
+	class := c.DefaultQuery("kelas", "")
+	angkatan := c.DefaultQuery("angkatan", "")
+	options := map[string]string{
+		"class":    class,
+		"angkatan": angkatan,
+	}
+
+	result, err := h.Service.GetAllMahasiswa(options)
 	if err != nil {
 		utils.HandleError(c, err)
 		return
@@ -71,12 +83,18 @@ func (h *MahasiswaHandler) GetAll(c *gin.Context) {
 			Uuid:        item.Uuid,
 			Nim:         item.Nim,
 			Nama:        item.Nama,
+			Kelas:       item.Class,
 			Angkatan:    fmt.Sprintf("%d", item.Angkatan),
 			Ipk:         fmt.Sprintf("%.2f", item.Ipk),
 			TotalSks:    fmt.Sprintf("%d", item.TotalSks),
 			JumlahError: fmt.Sprintf("%d", item.JumlahError),
-			CreatedAt:   item.CreatedAt,
-			UpdatedAt:   item.UpdatedAt,
+			Pembimbing: &response.Pembimbing{
+				Uuid: item.PembimbingAkademik.Uuid,
+				Nama: item.PembimbingAkademik.Nama,
+				Nip:  item.PembimbingAkademik.Nip,
+			},
+			CreatedAt: item.CreatedAt,
+			UpdatedAt: item.UpdatedAt,
 		})
 	}
 
@@ -95,12 +113,18 @@ func (h *MahasiswaHandler) Get(c *gin.Context) {
 		Uuid:        result.Uuid,
 		Nim:         result.Nim,
 		Nama:        result.Nama,
+		Kelas:       result.Class,
 		Angkatan:    fmt.Sprintf("%d", result.Angkatan),
 		Ipk:         fmt.Sprintf("%.2f", result.Ipk),
 		TotalSks:    fmt.Sprintf("%d", result.TotalSks),
 		JumlahError: fmt.Sprintf("%d", result.JumlahError),
-		CreatedAt:   result.CreatedAt,
-		UpdatedAt:   result.UpdatedAt,
+		Pembimbing: &response.Pembimbing{
+			Uuid: result.PembimbingAkademik.Uuid,
+			Nama: result.PembimbingAkademik.Nama,
+			Nip:  result.PembimbingAkademik.Nip,
+		},
+		CreatedAt: result.CreatedAt,
+		UpdatedAt: result.UpdatedAt,
 	}
 
 	c.JSON(http.StatusOK, response.DATA_RES(resp))
@@ -127,7 +151,7 @@ func (h *MahasiswaHandler) Update(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, response.SUCCESS_RES("Jurusan Berhasil Diperbarui"))
+	c.JSON(http.StatusOK, response.SUCCESS_RES("Mahasiswa Berhasil Diperbarui"))
 }
 
 func (h *MahasiswaHandler) Delete(c *gin.Context) {
@@ -137,5 +161,62 @@ func (h *MahasiswaHandler) Delete(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, response.SUCCESS_RES("Jurusan Berhasil Dihapus"))
+	c.JSON(http.StatusOK, response.SUCCESS_RES("Mahasiswa Berhasil Dihapus"))
+}
+
+func (h *MahasiswaHandler) GetData(c *gin.Context) {
+	nim := c.Param("nim")
+	if nim == "" {
+		utils.HandleError(c, response.BADREQ_ERR("Nim Tidak Ditemukan"))
+		return
+	}
+
+	resp, err := h.Service.GetDataMahasiswa(nim)
+	if err != nil {
+		utils.HandleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, response.DATA_RES(resp))
+}
+
+func (h *MahasiswaHandler) GetMahasiswaByUserUuid(c *gin.Context) {
+	userUuid := c.Param("userUuid")
+	if userUuid == "" {
+		utils.HandleError(c, response.BADREQ_ERR("Uuid Tidak Ditemukan"))
+		return
+	}
+
+	resp, err := h.Service.GetMahasiswaByUserUuid(userUuid)
+	if err != nil {
+		utils.HandleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, response.DATA_RES(resp))
+}
+
+func (h *MahasiswaHandler) GetMahasiswaByPenasihat(c *gin.Context) {
+	class := c.DefaultQuery("kelas", "")
+	angkatan := c.DefaultQuery("angkatan", "")
+	min_angkatan := c.DefaultQuery("min_angkatan", "")
+	options := map[string]string{
+		"class":        class,
+		"angkatan":     angkatan,
+		"min_angkatan": min_angkatan,
+	}
+
+	userUuid := c.Param("userUuid")
+	if userUuid == "" {
+		utils.HandleError(c, response.BADREQ_ERR("Uuid Tidak Ditemukan"))
+		return
+	}
+
+	resp, err := h.Service.GetAllMahasiswaByPenasihat(userUuid, options)
+	if err != nil {
+		utils.HandleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, response.DATA_RES(resp))
 }

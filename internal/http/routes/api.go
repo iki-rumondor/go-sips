@@ -22,10 +22,15 @@ func StartServer(handlers *config.Handlers) *gin.Engine {
 	public := router.Group("api")
 	{
 		public.POST("signin", handlers.AdminHandler.SignIn)
+		public.GET("mahasiswa/nim/:nim", handlers.MahasiswaHandler.GetData)
+		public.GET("user/:uuid", handlers.AdminHandler.GetUser)
 	}
 
 	admin := router.Group("api").Use(middleware.IsValidJWT())
 	{
+		admin.GET("mahasiswa/user/:userUuid", handlers.MahasiswaHandler.GetMahasiswaByUserUuid)
+		admin.GET("mahasiswa/penasihat/:userUuid", handlers.MahasiswaHandler.GetMahasiswaByPenasihat)
+
 		admin.POST("mahasiswa/import", handlers.MahasiswaHandler.Import)
 		admin.GET("mahasiswa", handlers.MahasiswaHandler.GetAll)
 		admin.GET("mahasiswa/:uuid", handlers.MahasiswaHandler.Get)
@@ -40,6 +45,17 @@ func StartServer(handlers *config.Handlers) *gin.Engine {
 
 		admin.GET("percepatan", handlers.AdminHandler.GetMahasiswaPercepatan)
 		admin.POST("percepatan", handlers.AdminHandler.SetMahasiswaPercepatan)
+		admin.GET("peringatan", handlers.AdminHandler.GetMahasiswaPeringatan)
+		admin.GET("peringatan/sinkronisasi", handlers.AdminHandler.SetMahasiswaPeringatan)
+
+		admin.POST("pembimbing", handlers.AdminHandler.CreatePembimbing)
+		admin.GET("pembimbing", handlers.AdminHandler.GetAllPembimbing)
+		admin.GET("pembimbing/:uuid", handlers.AdminHandler.GetPembimbing)
+		admin.PUT("pembimbing/:uuid", handlers.AdminHandler.UpdatePembimbing)
+		admin.DELETE("pembimbing/:uuid", handlers.AdminHandler.DeletePembimbing)
+
+		admin.POST("mahasiswa/kelas", handlers.AdminHandler.UpdateKelas)
+		admin.GET("classes", handlers.AdminHandler.GetClasses)
 	}
 
 	return router

@@ -36,9 +36,22 @@ func freshDatabase(db *gorm.DB) error {
 		}
 	}
 
-	db.Create(&models.Admin{
-		Username: "admin",
-		Password: "123",
+	db.Create(&models.Role{
+		Nama: "ADMIN",
+		Pengguna: &[]models.Pengguna{
+			{
+				Username: "admin",
+				Password: "123",
+			},
+		},
+	})
+
+	db.Create(&models.Role{
+		Nama: "MAHASISWA",
+	})
+
+	db.Create(&models.Role{
+		Nama: "PA",
 	})
 
 	return nil

@@ -2,8 +2,11 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"log"
+	"sort"
 	"strconv"
+	"time"
 
 	"github.com/iki-rumondor/sips/internal/http/request"
 	"github.com/iki-rumondor/sips/internal/http/response"
@@ -23,9 +26,9 @@ func NewAdminService(repo interfaces.AdminRepoInterface) interfaces.AdminService
 	}
 }
 
-func (s *AdminService) VerifyAdmin(req *request.SignIn) (string, error) {
+func (s *AdminService) VerifyPengguna(req *request.SignIn) (string, error) {
 
-	admin, err := s.Repo.FindAdminBy("username", req.Username)
+	pengguna, err := s.Repo.FindPenggunaBy("username", req.Username)
 	if err != nil {
 		log.Println(err.Error())
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -37,14 +40,14 @@ func (s *AdminService) VerifyAdmin(req *request.SignIn) (string, error) {
 		return "", response.SERVICE_INTERR
 	}
 
-	if err := utils.ComparePassword(admin.Password, req.Password); err != nil {
+	if err := utils.ComparePassword(pengguna.Password, req.Password); err != nil {
 		return "", &response.Error{
 			Code:    401,
 			Message: "Username atau password salah",
 		}
 	}
 
-	jwt, err := utils.GenerateToken(admin.Uuid)
+	jwt, err := utils.GenerateToken(pengguna.Uuid)
 	if err != nil {
 		return "", err
 	}
@@ -52,8 +55,24 @@ func (s *AdminService) VerifyAdmin(req *request.SignIn) (string, error) {
 	return jwt, nil
 }
 
+func (s *AdminService) GetUser(userUuid string) (*response.User, error) {
+	var model models.Pengguna
+	condition := fmt.Sprintf("uuid = '%s'", userUuid)
+	if err := s.Repo.First(&model, condition); err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
+	resp := response.User{
+		Uuid:     model.Uuid,
+		Username: model.Username,
+		Role:     model.Role.Nama,
+	}
+
+	return &resp, nil
+}
+
 func (s *AdminService) SetMahasiswaPercepatan(req *request.PercepatanCond) error {
-	angkatan, _ := strconv.Atoi(req.Angkatan)
 	totalSks, _ := strconv.Atoi(req.TotalSks)
 	jumlahError, _ := strconv.Atoi(req.JumlahError)
 
@@ -62,7 +81,12 @@ func (s *AdminService) SetMahasiswaPercepatan(req *request.PercepatanCond) error
 		return response.BADREQ_ERR("Nilai Ipk Tidak Valid")
 	}
 
-	mahasiswa, err := s.Repo.FindMahasiswaByRule(ipk, uint(totalSks), uint(jumlahError), uint(angkatan))
+	if err := s.Repo.Truncate("percepatan"); err != nil {
+		log.Println(err)
+		return response.SERVICE_INTERR
+	}
+
+	mahasiswa, err := s.Repo.FindMahasiswaByRule(ipk, uint(totalSks), uint(jumlahError))
 	if err != nil {
 		return response.SERVICE_INTERR
 	}
@@ -86,4 +110,184 @@ func (s *AdminService) GetMahasiswaPercepatan() (*[]models.Percepatan, error) {
 	}
 
 	return result, nil
+}
+
+func (s *AdminService) SetMahasiswaPeringatan() error {
+	yearRule := time.Now().Year() - 2
+
+	mahasiswa, err := s.Repo.FindMahasiswaByAngkatan(yearRule)
+	if err != nil {
+		return response.SERVICE_INTERR
+	}
+
+	if len(*mahasiswa) == 0 {
+		return response.NOTFOUND_ERR("Mahasiswa Tidak Ditemukan")
+	}
+
+	if err := s.Repo.CreateMahasiswaPeringatan(mahasiswa, uint(yearRule)); err != nil {
+		return response.SERVICE_INTERR
+	}
+
+	return nil
+}
+
+func (s *AdminService) GetMahasiswaPeringatan() (*[]models.Peringatan, error) {
+	result, err := s.Repo.FindMahasiswaPeringatan()
+	if err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
+	return result, nil
+}
+
+func (s *AdminService) CreatePembimbing(req *request.Pembimbing) error {
+	model := models.PembimbingAkademik{
+		Nama: req.Nama,
+		Nip:  req.Nip,
+		Pengguna: &models.Pengguna{
+			Username: req.Nip,
+			Password: req.Nip,
+			RoleID:   3,
+		},
+	}
+
+	if err := s.Repo.Create(&model); err != nil {
+		log.Println(err.Error())
+		if utils.IsErrorType(err) {
+			return err
+		}
+		return response.SERVICE_INTERR
+	}
+
+	return nil
+}
+
+func (s *AdminService) FindAllPembimbing() (*[]response.Pembimbing, error) {
+	var model []models.PembimbingAkademik
+
+	if err := s.Repo.Find(&model, ""); err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
+	var resp []response.Pembimbing
+	for _, item := range model {
+		resp = append(resp, response.Pembimbing{
+			Uuid: item.Uuid,
+			Nama: item.Nama,
+			Nip:  item.Nip,
+		})
+	}
+
+	return &resp, nil
+}
+
+func (s *AdminService) FindPembimbing(uuid string) (*response.Pembimbing, error) {
+	var model models.PembimbingAkademik
+	condition := fmt.Sprintf("uuid = '%s'", uuid)
+	if err := s.Repo.First(&model, condition); err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
+	resp := response.Pembimbing{
+		Uuid: model.Uuid,
+		Nama: model.Nama,
+		Nip:  model.Nip,
+	}
+
+	return &resp, nil
+}
+
+func (s *AdminService) UpdatePembimbing(uuid string, req *request.Pembimbing) error {
+	model := models.PembimbingAkademik{
+		Uuid: uuid,
+		Nama: req.Nama,
+		Nip:  req.Nip,
+	}
+
+	condition := fmt.Sprintf("uuid = '%s'", uuid)
+
+	if err := s.Repo.Update(&model, condition); err != nil {
+		log.Println(err.Error())
+		if utils.IsErrorType(err) {
+			return err
+		}
+		return response.SERVICE_INTERR
+	}
+
+	return nil
+}
+
+func (s *AdminService) DeletePembimbing(uuid string) error {
+	var model models.PembimbingAkademik
+	condition := fmt.Sprintf("uuid = '%s'", uuid)
+
+	if err := s.Repo.First(&model, condition); err != nil {
+		log.Println(err.Error())
+		return response.SERVICE_INTERR
+	}
+
+	if err := s.Repo.Delete(&model.Pengguna, []string{"PembimbingAkademik"}); err != nil {
+		log.Println(err.Error())
+		return response.SERVICE_INTERR
+	}
+
+	return nil
+}
+
+func (s *AdminService) UpdateKelas(req *request.KelasRule) error {
+
+	years := utils.GeneratePastYears(3)
+	var yearStrs []string
+	for _, year := range years {
+		yearStrs = append(yearStrs, strconv.Itoa(year))
+	}
+
+	for _, item := range yearStrs {
+		var model []models.Mahasiswa
+		condition := fmt.Sprintf("angkatan = %s", item)
+		order := "nim ASC"
+
+		if err := s.Repo.FindWithOrder(&model, condition, order); err != nil {
+			log.Println(err.Error())
+			return response.SERVICE_INTERR
+		}
+
+		classes := make(map[string][]models.Mahasiswa)
+		studentAmount, _ := strconv.Atoi(req.JumlahMahasiswa)
+		for i, student := range model {
+			class := string(rune('A' + (i / studentAmount)))
+			classes[class] = append(classes[class], student)
+		}
+
+		for class, students := range classes {
+			for _, student := range students {
+				model := models.Mahasiswa{
+					ID:    student.ID,
+					Class: class,
+				}
+				if err := s.Repo.Update(&model, ""); err != nil {
+					return response.SERVICE_INTERR
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+func (s *AdminService) GetClasses() ([]string, error) {
+	var model models.Mahasiswa
+	var resp []string
+
+	if err := s.Repo.Distinct(&model, "class", &resp); err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
+	sort.Strings(resp)
+
+	return resp, nil
 }

@@ -33,3 +33,14 @@ func StringToFloat(numString string) (float64, error) {
 
 	return result, nil
 }
+
+func GeneratePastYears(amount int) []int {
+	currentYear := time.Now().Year()
+	years := make([]int, 0)
+
+	for i := 0; i < amount; i++ {
+		years = append(years, currentYear-i)
+	}
+
+	return years
+}

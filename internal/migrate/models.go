@@ -8,11 +8,13 @@ type Model struct {
 
 func GetAllModels() []Model {
 	return []Model{
-		{Model: models.Admin{}},
+		{Model: models.Pengguna{}},
 		{Model: models.Mahasiswa{}},
 		{Model: models.TahunAjaran{}},
 		{Model: models.Percepatan{}},
 		{Model: models.Peringatan{}},
 		{Model: models.Kelas{}},
+		{Model: models.PembimbingAkademik{}},
+		{Model: models.Role{}},
 	}
 }
