@@ -24,15 +24,18 @@ func StartServer(handlers *config.Handlers) *gin.Engine {
 		public.POST("signin", handlers.AdminHandler.SignIn)
 		public.GET("mahasiswa/nim/:nim", handlers.MahasiswaHandler.GetData)
 		public.GET("user/:uuid", handlers.AdminHandler.GetUser)
+		public.GET("percepatan", handlers.AdminHandler.GetMahasiswaPercepatan)
+		public.GET("mahasiswa", handlers.MahasiswaHandler.GetAll)
 	}
 
 	admin := router.Group("api").Use(middleware.IsValidJWT())
 	{
 		admin.GET("mahasiswa/user/:userUuid", handlers.MahasiswaHandler.GetMahasiswaByUserUuid)
 		admin.GET("mahasiswa/penasihat/:userUuid", handlers.MahasiswaHandler.GetMahasiswaByPenasihat)
+		admin.GET("dashboard/penasihat/:userUuid", handlers.AdminHandler.GetPenasihatDashboard)
+		admin.GET("dashboard/kaprodi", handlers.AdminHandler.GetKaprodiDashboard)
 
 		admin.POST("mahasiswa/import", handlers.MahasiswaHandler.Import)
-		admin.GET("mahasiswa", handlers.MahasiswaHandler.GetAll)
 		admin.GET("mahasiswa/:uuid", handlers.MahasiswaHandler.Get)
 		admin.PUT("mahasiswa/:uuid", handlers.MahasiswaHandler.Update)
 		admin.DELETE("mahasiswa/:uuid", handlers.MahasiswaHandler.Delete)
@@ -43,7 +46,6 @@ func StartServer(handlers *config.Handlers) *gin.Engine {
 		admin.PUT("tahun_ajaran/:uuid", handlers.TahunAjaranHandler.Update)
 		admin.DELETE("tahun_ajaran/:uuid", handlers.TahunAjaranHandler.Delete)
 
-		admin.GET("percepatan", handlers.AdminHandler.GetMahasiswaPercepatan)
 		admin.POST("percepatan", handlers.AdminHandler.SetMahasiswaPercepatan)
 		admin.GET("peringatan", handlers.AdminHandler.GetMahasiswaPeringatan)
 		admin.GET("peringatan/sinkronisasi", handlers.AdminHandler.SetMahasiswaPeringatan)

@@ -23,6 +23,8 @@ type AdminHandlerInterface interface {
 
 	UpdateKelas(*gin.Context)
 	GetClasses(*gin.Context)
+	GetPenasihatDashboard(*gin.Context)
+	GetKaprodiDashboard(*gin.Context)
 }
 
 type AdminServiceInterface interface {
@@ -42,6 +44,8 @@ type AdminServiceInterface interface {
 
 	UpdateKelas(req *request.KelasRule) error
 	GetClasses() ([]string, error)
+	GetPenasihatDashboard(userUuid string) (map[string]interface{}, error)
+	GetKaprodiDashboard() (map[string]interface{}, error)
 }
 
 type AdminRepoInterface interface {
@@ -53,11 +57,13 @@ type AdminRepoInterface interface {
 	FindMahasiswaPeringatan() (*[]models.Peringatan, error)
 	CreateMahasiswaPeringatan(model *[]models.Mahasiswa, year uint) error
 
+	FindPenasihatPercepatan(dest *[]models.Percepatan, penasihatID uint) error
+
 	First(data interface{}, condition string) error
 	Find(data interface{}, condition string) error
 	FindWithOrder(data interface{}, condition, order string) error
 	Truncate(tableName string) error
-	Distinct(model interface{}, column string, dest *[]string) error
+	Distinct(model interface{}, column, condition string, dest *[]string) error
 	Create(data interface{}) error
 	Update(data interface{}, condition string) error
 	Delete(data interface{}, assoc []string) error

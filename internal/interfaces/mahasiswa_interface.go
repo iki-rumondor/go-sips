@@ -21,7 +21,7 @@ type MahasiswaHandlerInterface interface {
 
 type MahasiswaServiceInterface interface {
 	ImportMahasiswa(pembimbingUuid, pathFile string) (*[]response.FailedImport, error)
-	GetAllMahasiswa(options map[string]string) (*[]models.Mahasiswa, error)
+	GetAllMahasiswa(options map[string]string) (*[]response.Mahasiswa, error)
 	GetMahasiswa(uuid string) (*models.Mahasiswa, error)
 	UpdateMahasiswa(uuid string, req *request.Mahasiswa) error
 	DeleteMahasiswa(uuid string) error

@@ -143,6 +143,10 @@ func (r *AdminRepository) Delete(data interface{}, assoc []string) error {
 	return r.db.Select(assoc).Delete(data).Error
 }
 
-func (r *AdminRepository) Distinct(model interface{}, column string, dest *[]string) error {
-	return r.db.Model(model).Distinct().Pluck(column, dest).Error
+func (r *AdminRepository) Distinct(model interface{}, column, condition string, dest *[]string) error {
+	return r.db.Model(model).Distinct().Where(condition).Pluck(column, dest).Error
+}
+
+func (r *AdminRepository) FindPenasihatPercepatan(dest *[]models.Percepatan, penasihatID uint) error {
+	return r.db.Preload(clause.Associations).Joins("Mahasiswa").Find(dest, "mahasiswa.pembimbing_akademik_id = ?", penasihatID).Error
 }

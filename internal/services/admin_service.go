@@ -63,10 +63,30 @@ func (s *AdminService) GetUser(userUuid string) (*response.User, error) {
 		return nil, response.SERVICE_INTERR
 	}
 
+	var mahasiswa response.DataMahasiswa
+	var penasihat response.Pembimbing
+
+	if model.Mahasiswa != nil {
+		mahasiswa = response.DataMahasiswa{
+			Nim:  model.Mahasiswa.Nim,
+			Nama: model.Mahasiswa.Nama,
+		}
+	}
+
+	if model.PembimbingAkademik != nil {
+		penasihat = response.Pembimbing{
+			Uuid: model.PembimbingAkademik.Uuid,
+			Nama: model.PembimbingAkademik.Nama,
+			Nip:  model.PembimbingAkademik.Nip,
+		}
+	}
+
 	resp := response.User{
-		Uuid:     model.Uuid,
-		Username: model.Username,
-		Role:     model.Role.Nama,
+		Uuid:      model.Uuid,
+		Username:  model.Username,
+		Role:      model.Role.Nama,
+		Mahasiswa: &mahasiswa,
+		Penasihat: &penasihat,
 	}
 
 	return &resp, nil
@@ -282,12 +302,113 @@ func (s *AdminService) GetClasses() ([]string, error) {
 	var model models.Mahasiswa
 	var resp []string
 
-	if err := s.Repo.Distinct(&model, "class", &resp); err != nil {
+	if err := s.Repo.Distinct(&model, "class", "", &resp); err != nil {
 		log.Println(err.Error())
 		return nil, response.SERVICE_INTERR
 	}
 
 	sort.Strings(resp)
+
+	return resp, nil
+}
+
+func (s *AdminService) GetPenasihatDashboard(userUuid string) (map[string]interface{}, error) {
+	var user models.Pengguna
+	condition := fmt.Sprintf("uuid = '%s'", userUuid)
+	if err := s.Repo.First(&user, condition); err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
+	var model models.Mahasiswa
+	var listAngkatan []string
+	var amountAngkatan []int
+
+	condition = fmt.Sprintf("pembimbing_akademik_id = '%d'", user.PembimbingAkademik.ID)
+	if err := s.Repo.Distinct(&model, "angkatan", condition, &listAngkatan); err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
+	sort.Strings(listAngkatan)
+
+	for _, item := range listAngkatan {
+		var mahasiswa []models.Mahasiswa
+		condition = fmt.Sprintf("angkatan = '%s'", item)
+		if err := s.Repo.Find(&mahasiswa, condition); err != nil {
+			log.Println(err.Error())
+			return nil, response.SERVICE_INTERR
+		}
+		amountAngkatan = append(amountAngkatan, len(mahasiswa))
+	}
+
+	var dropOut []models.Mahasiswa
+	rule := time.Now().Year() - 5
+	condition = fmt.Sprintf("pembimbing_akademik_id = '%d' AND angkatan < '%d' ", user.PembimbingAkademik.ID, rule)
+	if err := s.Repo.Find(&dropOut, condition); err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
+	var percepatan []models.Percepatan
+	if err := s.Repo.FindPenasihatPercepatan(&percepatan, user.PembimbingAkademik.ID); err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
+	resp := map[string]interface{}{
+		"listAngkatan":   listAngkatan,
+		"amountAngkatan": amountAngkatan,
+		"do":             len(dropOut),
+		"percepatan":     len(percepatan),
+	}
+
+	return resp, nil
+}
+
+func (s *AdminService) GetKaprodiDashboard() (map[string]interface{}, error) {
+
+	var model models.Mahasiswa
+	var listAngkatan []string
+	var amountAngkatan []int
+
+	if err := s.Repo.Distinct(&model, "angkatan", "", &listAngkatan); err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
+	sort.Strings(listAngkatan)
+
+	for _, item := range listAngkatan {
+		var mahasiswa []models.Mahasiswa
+		condition := fmt.Sprintf("angkatan = '%s'", item)
+		if err := s.Repo.Find(&mahasiswa, condition); err != nil {
+			log.Println(err.Error())
+			return nil, response.SERVICE_INTERR
+		}
+		amountAngkatan = append(amountAngkatan, len(mahasiswa))
+	}
+
+	var dropOut []models.Mahasiswa
+	rule := time.Now().Year() - 5
+	condition := fmt.Sprintf("angkatan < '%d' ", rule)
+	if err := s.Repo.Find(&dropOut, condition); err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
+	result, err := s.Repo.FindMahasiswaPercepatan()
+	if err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
+	resp := map[string]interface{}{
+		"listAngkatan":   listAngkatan,
+		"amountAngkatan": amountAngkatan,
+		"do":             len(dropOut),
+		"percepatan":     len(*result),
+	}
 
 	return resp, nil
 }

@@ -7,7 +7,9 @@ type Pembimbing struct {
 }
 
 type User struct {
-	Uuid     string `json:"uuid"`
-	Username string `json:"username"`
-	Role     string `json:"role"`
+	Uuid      string         `json:"uuid"`
+	Username  string         `json:"username"`
+	Role      string         `json:"role"`
+	Mahasiswa *DataMahasiswa `json:"mahasiswa"`
+	Penasihat *Pembimbing    `json:"penasihat"`
 }

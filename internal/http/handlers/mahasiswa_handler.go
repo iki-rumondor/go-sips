@@ -71,31 +71,10 @@ func (h *MahasiswaHandler) GetAll(c *gin.Context) {
 		"angkatan": angkatan,
 	}
 
-	result, err := h.Service.GetAllMahasiswa(options)
+	resp, err := h.Service.GetAllMahasiswa(options)
 	if err != nil {
 		utils.HandleError(c, err)
 		return
-	}
-
-	var resp []*response.Mahasiswa
-	for _, item := range *result {
-		resp = append(resp, &response.Mahasiswa{
-			Uuid:        item.Uuid,
-			Nim:         item.Nim,
-			Nama:        item.Nama,
-			Kelas:       item.Class,
-			Angkatan:    fmt.Sprintf("%d", item.Angkatan),
-			Ipk:         fmt.Sprintf("%.2f", item.Ipk),
-			TotalSks:    fmt.Sprintf("%d", item.TotalSks),
-			JumlahError: fmt.Sprintf("%d", item.JumlahError),
-			Pembimbing: &response.Pembimbing{
-				Uuid: item.PembimbingAkademik.Uuid,
-				Nama: item.PembimbingAkademik.Nama,
-				Nip:  item.PembimbingAkademik.Nip,
-			},
-			CreatedAt: item.CreatedAt,
-			UpdatedAt: item.UpdatedAt,
-		})
 	}
 
 	c.JSON(http.StatusOK, response.DATA_RES(resp))

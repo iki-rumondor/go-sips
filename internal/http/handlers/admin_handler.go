@@ -55,7 +55,6 @@ func (h *AdminHandler) GetUser(c *gin.Context) {
 		return
 	}
 
-	
 	c.JSON(http.StatusOK, response.DATA_RES(resp))
 }
 
@@ -242,6 +241,29 @@ func (h *AdminHandler) UpdateKelas(c *gin.Context) {
 func (h *AdminHandler) GetClasses(c *gin.Context) {
 
 	resp, err := h.Service.GetClasses()
+	if err != nil {
+		utils.HandleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, response.DATA_RES(resp))
+}
+
+func (h *AdminHandler) GetPenasihatDashboard(c *gin.Context) {
+
+	userUuid := c.Param("userUuid")
+	resp, err := h.Service.GetPenasihatDashboard(userUuid)
+	if err != nil {
+		utils.HandleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, response.DATA_RES(resp))
+}
+
+func (h *AdminHandler) GetKaprodiDashboard(c *gin.Context) {
+
+	resp, err := h.Service.GetKaprodiDashboard()
 	if err != nil {
 		utils.HandleError(c, err)
 		return

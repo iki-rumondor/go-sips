@@ -119,15 +119,39 @@ func (s *MahasiswaService) ImportMahasiswa(pembimbingUuid, pathFile string) (*[]
 	return &failedImport, nil
 }
 
-func (s *MahasiswaService) GetAllMahasiswa(options map[string]string) (*[]models.Mahasiswa, error) {
+func (s *MahasiswaService) GetAllMahasiswa(options map[string]string) (*[]response.Mahasiswa, error) {
+	var model []models.Mahasiswa
+
 	condition := fmt.Sprintf("angkatan LIKE '%%%s%%' AND class LIKE '%%%s%%'", options["angkatan"], options["class"])
-	result, err := s.Repo.FindAllMahasiswa(condition)
-	if err != nil {
+	if err := s.Repo.Find(&model, condition, "nim"); err != nil {
 		log.Println(err.Error())
 		return nil, response.SERVICE_INTERR
 	}
 
-	return result, nil
+	var resp []response.Mahasiswa
+
+	for _, item := range model {
+		resp = append(resp, response.Mahasiswa{
+			Uuid:        item.Uuid,
+			Nim:         item.Nim,
+			Nama:        item.Nama,
+			Kelas:       item.Class,
+			Angkatan:    fmt.Sprintf("%d", item.Angkatan),
+			Ipk:         fmt.Sprintf("%.2f", item.Ipk),
+			TotalSks:    fmt.Sprintf("%d", item.TotalSks),
+			JumlahError: fmt.Sprintf("%d", item.JumlahError),
+			Pembimbing: &response.Pembimbing{
+				Uuid: item.PembimbingAkademik.Uuid,
+				Nama: item.PembimbingAkademik.Nama,
+				Nip:  item.PembimbingAkademik.Nip,
+			},
+			CreatedAt: item.CreatedAt,
+			UpdatedAt: item.UpdatedAt,
+		})
+
+	}
+
+	return &resp, nil
 }
 
 func (s *MahasiswaService) GetMahasiswa(uuid string) (*models.Mahasiswa, error) {
