@@ -6,6 +6,12 @@ type Pembimbing struct {
 	Nip  string `json:"nip"`
 }
 
+type Pengaturan struct {
+	Uuid  string `json:"uuid"`
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
+
 type User struct {
 	Uuid      string         `json:"uuid"`
 	Username  string         `json:"username"`

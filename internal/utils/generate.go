@@ -44,3 +44,15 @@ func GeneratePastYears(amount int) []int {
 
 	return years
 }
+
+func GenerateYearsUntil(startYear int) []string {
+	currentYear := time.Now().Year()
+
+	years := make([]string, 0)
+
+	for year := currentYear; year >= startYear; year-- {
+		years = append(years, fmt.Sprintf("%d", year))
+	}
+
+	return years
+}

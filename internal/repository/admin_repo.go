@@ -109,16 +109,6 @@ func (r *AdminRepository) CreateMahasiswaPeringatan(mahasiswa *[]models.Mahasisw
 	})
 }
 
-// func (r *AdminRepository) CreatePembimbing(data models.PembimbingAkademik) error {
-// 	return r.db.Transaction(func(tx *gorm.DB) error {
-// 		pengguna := models.Pengguna{
-// 			Username: ,
-// 		}
-// 		if err := tx.Create(pengguna)
-// 		return nil
-// 	})
-// }
-
 func (r *AdminRepository) Create(data interface{}) error {
 	return r.db.Create(data).Error
 }
@@ -150,3 +140,4 @@ func (r *AdminRepository) Distinct(model interface{}, column, condition string, 
 func (r *AdminRepository) FindPenasihatPercepatan(dest *[]models.Percepatan, penasihatID uint) error {
 	return r.db.Preload(clause.Associations).Joins("Mahasiswa").Find(dest, "mahasiswa.pembimbing_akademik_id = ?", penasihatID).Error
 }
+

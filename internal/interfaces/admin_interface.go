@@ -9,10 +9,6 @@ import (
 
 type AdminHandlerInterface interface {
 	SignIn(*gin.Context)
-	SetMahasiswaPercepatan(*gin.Context)
-	GetMahasiswaPercepatan(*gin.Context)
-	SetMahasiswaPeringatan(*gin.Context)
-	GetMahasiswaPeringatan(*gin.Context)
 	GetUser(*gin.Context)
 
 	CreatePembimbing(*gin.Context)
@@ -25,15 +21,11 @@ type AdminHandlerInterface interface {
 	GetClasses(*gin.Context)
 	GetPenasihatDashboard(*gin.Context)
 	GetKaprodiDashboard(*gin.Context)
+	GetPengaturan(*gin.Context)
 }
 
 type AdminServiceInterface interface {
 	VerifyPengguna(*request.SignIn) (string, error)
-	SetMahasiswaPercepatan(*request.PercepatanCond) error
-	GetMahasiswaPercepatan() (*[]models.Percepatan, error)
-	SetMahasiswaPeringatan() error
-	GetMahasiswaPeringatan() (*[]models.Peringatan, error)
-
 	GetUser(userUuid string) (*response.User, error)
 
 	CreatePembimbing(req *request.Pembimbing) error
@@ -46,17 +38,12 @@ type AdminServiceInterface interface {
 	GetClasses() ([]string, error)
 	GetPenasihatDashboard(userUuid string) (map[string]interface{}, error)
 	GetKaprodiDashboard() (map[string]interface{}, error)
+	GetPengaturan() (*[]response.Pengaturan, error)
 }
 
 type AdminRepoInterface interface {
 	FindPenggunaBy(column string, value interface{}) (*models.Pengguna, error)
-	FindMahasiswaByRule(ipk float64, total_sks, jumlah_error uint) (*[]models.Mahasiswa, error)
 	FindMahasiswaByAngkatan(tahun int) (*[]models.Mahasiswa, error)
-	FindMahasiswaPercepatan() (*[]models.Percepatan, error)
-	CreateMahasiswaPercepatan(*[]models.Mahasiswa) error
-	FindMahasiswaPeringatan() (*[]models.Peringatan, error)
-	CreateMahasiswaPeringatan(model *[]models.Mahasiswa, year uint) error
-
 	FindPenasihatPercepatan(dest *[]models.Percepatan, penasihatID uint) error
 
 	First(data interface{}, condition string) error

@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/asaskevich/govalidator"
@@ -56,92 +55,6 @@ func (h *AdminHandler) GetUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response.DATA_RES(resp))
-}
-
-func (h *AdminHandler) SetMahasiswaPercepatan(c *gin.Context) {
-
-	var body request.PercepatanCond
-	if err := c.BindJSON(&body); err != nil {
-		utils.HandleError(c, response.BADREQ_ERR(err.Error()))
-		return
-	}
-
-	if _, err := govalidator.ValidateStruct(&body); err != nil {
-		utils.HandleError(c, response.BADREQ_ERR(err.Error()))
-		return
-	}
-
-	if err := h.Service.SetMahasiswaPercepatan(&body); err != nil {
-		utils.HandleError(c, err)
-		return
-	}
-
-	c.JSON(http.StatusOK, response.SUCCESS_RES("Mahasiswa Percepatan Berhasil Ditambahkan"))
-}
-
-func (h *AdminHandler) GetMahasiswaPercepatan(c *gin.Context) {
-
-	mahasiswa, err := h.Service.GetMahasiswaPercepatan()
-	if err != nil {
-		utils.HandleError(c, err)
-		return
-	}
-
-	var res []*response.Mahasiswa
-	for _, item := range *mahasiswa {
-		res = append(res, &response.Mahasiswa{
-			Uuid:        item.Mahasiswa.Uuid,
-			Nim:         item.Mahasiswa.Nim,
-			Nama:        item.Mahasiswa.Nama,
-			Angkatan:    fmt.Sprintf("%d", item.Mahasiswa.Angkatan),
-			Ipk:         fmt.Sprintf("%.2f", item.Mahasiswa.Ipk),
-			TotalSks:    fmt.Sprintf("%d", item.Mahasiswa.TotalSks),
-			JumlahError: fmt.Sprintf("%d", item.Mahasiswa.JumlahError),
-			CreatedAt:   item.Mahasiswa.CreatedAt,
-			UpdatedAt:   item.Mahasiswa.UpdatedAt,
-		})
-	}
-
-	c.JSON(http.StatusOK, response.DATA_RES(res))
-}
-
-func (h *AdminHandler) SetMahasiswaPeringatan(c *gin.Context) {
-
-	if err := h.Service.SetMahasiswaPeringatan(); err != nil {
-		utils.HandleError(c, err)
-		return
-	}
-
-	c.JSON(http.StatusOK, response.SUCCESS_RES("Status Mahasiswa Berhasil Diperbarui"))
-}
-
-func (h *AdminHandler) GetMahasiswaPeringatan(c *gin.Context) {
-
-	mahasiswa, err := h.Service.GetMahasiswaPeringatan()
-	if err != nil {
-		utils.HandleError(c, err)
-		return
-	}
-
-	var res []*response.StatusMahasiswa
-	for _, item := range *mahasiswa {
-		res = append(res, &response.StatusMahasiswa{
-			Status: fmt.Sprintf("%d", item.Status),
-			Mahasiswa: &response.Mahasiswa{
-				Uuid:        item.Mahasiswa.Uuid,
-				Nim:         item.Mahasiswa.Nim,
-				Nama:        item.Mahasiswa.Nama,
-				Angkatan:    fmt.Sprintf("%d", item.Mahasiswa.Angkatan),
-				Ipk:         fmt.Sprintf("%.2f", item.Mahasiswa.Ipk),
-				TotalSks:    fmt.Sprintf("%d", item.Mahasiswa.TotalSks),
-				JumlahError: fmt.Sprintf("%d", item.Mahasiswa.JumlahError),
-			},
-			CreatedAt: item.CreatedAt,
-			UpdatedAt: item.UpdatedAt,
-		})
-	}
-
-	c.JSON(http.StatusOK, response.DATA_RES(res))
 }
 
 func (h *AdminHandler) CreatePembimbing(c *gin.Context) {
@@ -264,6 +177,17 @@ func (h *AdminHandler) GetPenasihatDashboard(c *gin.Context) {
 func (h *AdminHandler) GetKaprodiDashboard(c *gin.Context) {
 
 	resp, err := h.Service.GetKaprodiDashboard()
+	if err != nil {
+		utils.HandleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, response.DATA_RES(resp))
+}
+
+func (h *AdminHandler) GetPengaturan(c *gin.Context) {
+
+	resp, err := h.Service.GetPengaturan()
 	if err != nil {
 		utils.HandleError(c, err)
 		return

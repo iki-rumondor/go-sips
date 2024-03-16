@@ -64,6 +64,33 @@ func freshDatabase(db *gorm.DB) error {
 		},
 	})
 
+	db.Create([]models.Pengaturan{
+		{
+			Name:  "angkatan_percepatan",
+			Value: fmt.Sprintf("%d", db.NowFunc().Year()-3),
+		},
+		{
+			Name:  "angkatan_kelas",
+			Value: fmt.Sprintf("%d", db.NowFunc().Year()-2),
+		},
+		{
+			Name:  "total_sks",
+			Value: "120",
+		},
+		{
+			Name:  "jumlah_error",
+			Value: "0",
+		},
+		{
+			Name:  "ipk",
+			Value: "3",
+		},
+		{
+			Name:  "jumlah_mahasiswa",
+			Value: "20",
+		},
+	})
+
 	return nil
 }
 

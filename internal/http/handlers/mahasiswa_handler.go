@@ -93,6 +93,7 @@ func (h *MahasiswaHandler) Get(c *gin.Context) {
 		Nim:         result.Nim,
 		Nama:        result.Nama,
 		Kelas:       result.Class,
+		Percepatan:  result.Percepatan,
 		Angkatan:    fmt.Sprintf("%d", result.Angkatan),
 		Ipk:         fmt.Sprintf("%.2f", result.Ipk),
 		TotalSks:    fmt.Sprintf("%d", result.TotalSks),
@@ -192,6 +193,36 @@ func (h *MahasiswaHandler) GetMahasiswaByPenasihat(c *gin.Context) {
 	}
 
 	resp, err := h.Service.GetAllMahasiswaByPenasihat(userUuid, options)
+	if err != nil {
+		utils.HandleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, response.DATA_RES(resp))
+}
+
+func (h *MahasiswaHandler) UpdatePengaturan(c *gin.Context) {
+	var body request.Pengaturan
+	if err := c.BindJSON(&body); err != nil {
+		utils.HandleError(c, response.BADREQ_ERR(err.Error()))
+		return
+	}
+
+	if _, err := govalidator.ValidateStruct(&body); err != nil {
+		utils.HandleError(c, response.BADREQ_ERR(err.Error()))
+		return
+	}
+
+	if err := h.Service.UpdatePengaturan(&body); err != nil {
+		utils.HandleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, response.SUCCESS_RES("Pengaturan Berhasil Diperbarui"))
+}
+
+func (h *MahasiswaHandler) GetMahasiswaPercepatan(c *gin.Context) {
+	resp, err := h.Service.GetMahasiswaPercepatan()
 	if err != nil {
 		utils.HandleError(c, err)
 		return

@@ -92,75 +92,6 @@ func (s *AdminService) GetUser(userUuid string) (*response.User, error) {
 	return &resp, nil
 }
 
-func (s *AdminService) SetMahasiswaPercepatan(req *request.PercepatanCond) error {
-	totalSks, _ := strconv.Atoi(req.TotalSks)
-	jumlahError, _ := strconv.Atoi(req.JumlahError)
-
-	ipk, err := utils.StringToFloat(req.Ipk)
-	if err != nil {
-		return response.BADREQ_ERR("Nilai Ipk Tidak Valid")
-	}
-
-	if err := s.Repo.Truncate("percepatan"); err != nil {
-		log.Println(err)
-		return response.SERVICE_INTERR
-	}
-
-	mahasiswa, err := s.Repo.FindMahasiswaByRule(ipk, uint(totalSks), uint(jumlahError))
-	if err != nil {
-		return response.SERVICE_INTERR
-	}
-
-	if len(*mahasiswa) == 0 {
-		return response.NOTFOUND_ERR("Mahasiswa Dengan Kriteria Tersebut Tidak Ditemukan")
-	}
-
-	if err := s.Repo.CreateMahasiswaPercepatan(mahasiswa); err != nil {
-		return response.SERVICE_INTERR
-	}
-
-	return nil
-}
-
-func (s *AdminService) GetMahasiswaPercepatan() (*[]models.Percepatan, error) {
-	result, err := s.Repo.FindMahasiswaPercepatan()
-	if err != nil {
-		log.Println(err.Error())
-		return nil, response.SERVICE_INTERR
-	}
-
-	return result, nil
-}
-
-func (s *AdminService) SetMahasiswaPeringatan() error {
-	yearRule := time.Now().Year() - 2
-
-	mahasiswa, err := s.Repo.FindMahasiswaByAngkatan(yearRule)
-	if err != nil {
-		return response.SERVICE_INTERR
-	}
-
-	if len(*mahasiswa) == 0 {
-		return response.NOTFOUND_ERR("Mahasiswa Tidak Ditemukan")
-	}
-
-	if err := s.Repo.CreateMahasiswaPeringatan(mahasiswa, uint(yearRule)); err != nil {
-		return response.SERVICE_INTERR
-	}
-
-	return nil
-}
-
-func (s *AdminService) GetMahasiswaPeringatan() (*[]models.Peringatan, error) {
-	result, err := s.Repo.FindMahasiswaPeringatan()
-	if err != nil {
-		log.Println(err.Error())
-		return nil, response.SERVICE_INTERR
-	}
-
-	return result, nil
-}
-
 func (s *AdminService) CreatePembimbing(req *request.Pembimbing) error {
 	model := models.PembimbingAkademik{
 		Nama: req.Nama,
@@ -350,8 +281,9 @@ func (s *AdminService) GetPenasihatDashboard(userUuid string) (map[string]interf
 		return nil, response.SERVICE_INTERR
 	}
 
-	var percepatan []models.Percepatan
-	if err := s.Repo.FindPenasihatPercepatan(&percepatan, user.PembimbingAkademik.ID); err != nil {
+	var percepatan []models.Mahasiswa
+	condition = fmt.Sprintf("pembimbing_akademik_id = '%d' AND percepatan = %v", user.PembimbingAkademik.ID, true)
+	if err := s.Repo.Find(&percepatan, condition); err != nil {
 		log.Println(err.Error())
 		return nil, response.SERVICE_INTERR
 	}
@@ -397,8 +329,9 @@ func (s *AdminService) GetKaprodiDashboard() (map[string]interface{}, error) {
 		return nil, response.SERVICE_INTERR
 	}
 
-	result, err := s.Repo.FindMahasiswaPercepatan()
-	if err != nil {
+	var percepatan []models.Mahasiswa
+	condition = fmt.Sprintf("percepatan = %v", true)
+	if err := s.Repo.Find(&percepatan, condition); err != nil {
 		log.Println(err.Error())
 		return nil, response.SERVICE_INTERR
 	}
@@ -407,8 +340,28 @@ func (s *AdminService) GetKaprodiDashboard() (map[string]interface{}, error) {
 		"listAngkatan":   listAngkatan,
 		"amountAngkatan": amountAngkatan,
 		"do":             len(dropOut),
-		"percepatan":     len(*result),
+		"percepatan":     len(percepatan),
 	}
 
 	return resp, nil
+}
+
+func (s *AdminService) GetPengaturan() (*[]response.Pengaturan, error) {
+	var model []models.Pengaturan
+
+	if err := s.Repo.Find(&model, "id"); err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
+	var resp []response.Pengaturan
+	for _, item := range model {
+		resp = append(resp, response.Pengaturan{
+			Uuid:  item.Uuid,
+			Name:  item.Name,
+			Value: item.Value,
+		})
+	}
+
+	return &resp, nil
 }
