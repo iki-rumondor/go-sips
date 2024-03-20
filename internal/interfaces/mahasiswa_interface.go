@@ -13,6 +13,7 @@ type MahasiswaHandlerInterface interface {
 	Get(*gin.Context)
 	Update(*gin.Context)
 	Delete(*gin.Context)
+	DeleteAll(*gin.Context)
 
 	GetData(*gin.Context)
 	GetMahasiswaPercepatan(*gin.Context)
@@ -27,6 +28,7 @@ type MahasiswaServiceInterface interface {
 	GetMahasiswa(uuid string) (*models.Mahasiswa, error)
 	UpdateMahasiswa(uuid string, req *request.Mahasiswa) error
 	DeleteMahasiswa(uuid string) error
+	DeleteAllMahasiswa() error
 
 	GetMahasiswaPercepatan() (*[]response.Mahasiswa, error)
 	GetDataMahasiswa(nim string) (*response.Mahasiswa, error)
@@ -45,7 +47,9 @@ type MahasiswaRepoInterface interface {
 	FindBy(tableName, column string, value interface{}) (map[string]interface{}, error)
 	Find(data interface{}, condition, order string) error
 	First(data interface{}, condition string) error
+	Truncate(tableName string) error
 	UpdatePengaturan(model *[]models.Pengaturan) error
 	UpdateKelas() error
 	UpdatePercepatan() error
+	Delete(data interface{}, assoc []string) error
 }

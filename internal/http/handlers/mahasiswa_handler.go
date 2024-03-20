@@ -144,6 +144,15 @@ func (h *MahasiswaHandler) Delete(c *gin.Context) {
 	c.JSON(http.StatusOK, response.SUCCESS_RES("Mahasiswa Berhasil Dihapus"))
 }
 
+func (h *MahasiswaHandler) DeleteAll(c *gin.Context) {
+	if err := h.Service.DeleteAllMahasiswa(); err != nil {
+		utils.HandleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, response.SUCCESS_RES("Mahasiswa Berhasil Dihapus"))
+}
+
 func (h *MahasiswaHandler) GetData(c *gin.Context) {
 	nim := c.Param("nim")
 	if nim == "" {

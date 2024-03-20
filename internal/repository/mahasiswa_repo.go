@@ -181,3 +181,11 @@ func (r *MahasiswaRepository) UpdatePercepatan() error {
 		return nil
 	})
 }
+
+func (r *MahasiswaRepository) Truncate(tableName string) error {
+	return r.db.Exec(fmt.Sprintf("TRUNCATE TABLE %s", tableName)).Error
+}
+
+func (r *MahasiswaRepository) Delete(data interface{}, assoc []string) error {
+	return r.db.Select(assoc).Delete(data).Error
+}

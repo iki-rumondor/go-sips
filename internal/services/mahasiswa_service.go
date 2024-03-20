@@ -232,6 +232,21 @@ func (s *MahasiswaService) DeleteMahasiswa(uuid string) error {
 	return nil
 }
 
+func (s *MahasiswaService) DeleteAllMahasiswa() error {
+	var model []models.Pengguna
+	if err := s.Repo.Find(&model, "role_id = '2'", ""); err != nil {
+		log.Println(err)
+		return response.SERVICE_INTERR
+	}
+
+	if err := s.Repo.Delete(model, []string{"Mahasiswa"}); err != nil {
+		log.Println(err)
+		return response.SERVICE_INTERR
+	}
+
+	return nil
+}
+
 func (s *MahasiswaService) GetDataMahasiswa(nim string) (*response.Mahasiswa, error) {
 	var mahasiswa models.Mahasiswa
 	condition := fmt.Sprintf("nim = '%s'", nim)

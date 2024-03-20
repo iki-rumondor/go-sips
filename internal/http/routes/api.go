@@ -39,6 +39,7 @@ func StartServer(handlers *config.Handlers) *gin.Engine {
 		admin.GET("mahasiswa/:uuid", handlers.MahasiswaHandler.Get)
 		admin.PUT("mahasiswa/:uuid", handlers.MahasiswaHandler.Update)
 		admin.DELETE("mahasiswa/:uuid", handlers.MahasiswaHandler.Delete)
+		admin.DELETE("mahasiswa/all", handlers.MahasiswaHandler.DeleteAll)
 
 		admin.POST("tahun_ajaran", handlers.TahunAjaranHandler.Create)
 		admin.GET("tahun_ajaran", handlers.TahunAjaranHandler.GetAll)
