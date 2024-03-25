@@ -178,6 +178,51 @@ func (s *MahasiswaService) GetMahasiswa(uuid string) (*models.Mahasiswa, error) 
 	return result, nil
 }
 
+func (s *MahasiswaService) GetMahasiswaProdi(userUuid string) (*[]response.Mahasiswa, error) {
+	var user models.Pengguna
+	condition := fmt.Sprintf("uuid = '%s'", userUuid)
+	if err := s.Repo.First(&user, condition); err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
+	var model []models.PembimbingAkademik
+	condition = fmt.Sprintf("prodi_id = '%d'", user.Prodi.ID)
+	if err := s.Repo.Find(&model, condition, "id"); err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
+	var resp []response.Mahasiswa
+
+	for _, item := range model {
+		pembimbing := &response.Pembimbing{
+			Uuid: item.Uuid,
+			Nama: item.Nama,
+			Nip:  item.Nip,
+		}
+
+		for _, item := range *item.Mahasiswa {
+			resp = append(resp, response.Mahasiswa{
+				Uuid:        item.Uuid,
+				Nim:         item.Nim,
+				Nama:        item.Nama,
+				Kelas:       item.Class,
+				Percepatan:  item.Percepatan,
+				Angkatan:    fmt.Sprintf("%d", item.Angkatan),
+				Ipk:         fmt.Sprintf("%.2f", item.Ipk),
+				TotalSks:    fmt.Sprintf("%d", item.TotalSks),
+				JumlahError: fmt.Sprintf("%d", item.JumlahError),
+				Pembimbing:  pembimbing,
+				CreatedAt:   item.CreatedAt,
+				UpdatedAt:   item.UpdatedAt,
+			})
+		}
+	}
+
+	return &resp, nil
+}
+
 func (s *MahasiswaService) UpdateMahasiswa(uuid string, req *request.Mahasiswa) error {
 	var pembimbing models.PembimbingAkademik
 	condition := fmt.Sprintf("uuid = '%s'", req.PembimbingUuid)
@@ -232,14 +277,28 @@ func (s *MahasiswaService) DeleteMahasiswa(uuid string) error {
 	return nil
 }
 
-func (s *MahasiswaService) DeleteAllMahasiswa() error {
-	var model []models.Pengguna
-	if err := s.Repo.Find(&model, "role_id = '2'", ""); err != nil {
-		log.Println(err)
+func (s *MahasiswaService) DeleteAllMahasiswa(userUuid string) error {
+	var user models.Pengguna
+	condition := fmt.Sprintf("uuid = '%s'", userUuid)
+	if err := s.Repo.First(&user, condition); err != nil {
+		log.Println(err.Error())
 		return response.SERVICE_INTERR
 	}
 
-	if err := s.Repo.Delete(model, []string{"Mahasiswa"}); err != nil {
+	var pembimbing []models.PembimbingAkademik
+	condition = fmt.Sprintf("prodi_id = '%d'", user.Prodi.ID)
+	if err := s.Repo.Find(&pembimbing, condition, "id"); err != nil {
+		log.Println(err.Error())
+		return response.SERVICE_INTERR
+	}
+
+	var mahasiswa []models.Mahasiswa
+
+	for _, item := range pembimbing {
+		mahasiswa = append(mahasiswa, *item.Mahasiswa...)
+	}
+
+	if err := s.Repo.Delete(&mahasiswa, nil); err != nil {
 		log.Println(err)
 		return response.SERVICE_INTERR
 	}

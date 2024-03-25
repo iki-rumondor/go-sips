@@ -32,3 +32,10 @@ func (m *Mahasiswa) BeforeCreate(tx *gorm.DB) error {
 	m.Uuid = uuid.NewString()
 	return nil
 }
+
+func (m *Mahasiswa) AfterDelete(tx *gorm.DB) error {
+	if err := tx.Delete(&Pengguna{}, "id = ?", m.PenggunaID).Error; err != nil {
+		return err
+	}
+	return nil
+}

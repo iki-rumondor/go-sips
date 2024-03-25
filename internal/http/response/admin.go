@@ -6,6 +6,13 @@ type Pembimbing struct {
 	Nip  string `json:"nip"`
 }
 
+type Prodi struct {
+	Uuid     string `json:"uuid"`
+	Name     string `json:"name"`
+	Kaprodi  string `json:"kaprodi"`
+	Username string `json:"username"`
+}
+
 type Pengaturan struct {
 	Uuid  string `json:"uuid"`
 	Name  string `json:"name"`

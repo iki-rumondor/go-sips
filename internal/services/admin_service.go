@@ -93,9 +93,17 @@ func (s *AdminService) GetUser(userUuid string) (*response.User, error) {
 }
 
 func (s *AdminService) CreatePembimbing(req *request.Pembimbing) error {
+	var user models.Pengguna
+	condition := fmt.Sprintf("uuid = '%s'", req.UserUuid)
+	if err := s.Repo.First(&user, condition); err != nil {
+		log.Println(err.Error())
+		return response.SERVICE_INTERR
+	}
+
 	model := models.PembimbingAkademik{
-		Nama: req.Nama,
-		Nip:  req.Nip,
+		Nama:    req.Nama,
+		Nip:     req.Nip,
+		ProdiID: user.Prodi.ID,
 		Pengguna: &models.Pengguna{
 			Username: req.Nip,
 			Password: req.Nip,
@@ -134,6 +142,33 @@ func (s *AdminService) FindAllPembimbing() (*[]response.Pembimbing, error) {
 	return &resp, nil
 }
 
+func (s *AdminService) FindPembimbingProdi(userUuid string) (*[]response.Pembimbing, error) {
+	var user models.Pengguna
+	condition := fmt.Sprintf("uuid = '%s'", userUuid)
+	if err := s.Repo.First(&user, condition); err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
+	var model []models.PembimbingAkademik
+	condition = fmt.Sprintf("prodi_id = '%d'", user.Prodi.ID)
+	if err := s.Repo.Find(&model, condition); err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
+	var resp []response.Pembimbing
+	for _, item := range model {
+		resp = append(resp, response.Pembimbing{
+			Uuid: item.Uuid,
+			Nama: item.Nama,
+			Nip:  item.Nip,
+		})
+	}
+
+	return &resp, nil
+}
+
 func (s *AdminService) FindPembimbing(uuid string) (*response.Pembimbing, error) {
 	var model models.PembimbingAkademik
 	condition := fmt.Sprintf("uuid = '%s'", uuid)
@@ -151,7 +186,7 @@ func (s *AdminService) FindPembimbing(uuid string) (*response.Pembimbing, error)
 	return &resp, nil
 }
 
-func (s *AdminService) UpdatePembimbing(uuid string, req *request.Pembimbing) error {
+func (s *AdminService) UpdatePembimbing(uuid string, req *request.UpdatePembimbing) error {
 	model := models.PembimbingAkademik{
 		Uuid: uuid,
 		Nama: req.Nama,
@@ -181,6 +216,113 @@ func (s *AdminService) DeletePembimbing(uuid string) error {
 	}
 
 	if err := s.Repo.Delete(&model.Pengguna, []string{"PembimbingAkademik"}); err != nil {
+		log.Println(err.Error())
+		return response.SERVICE_INTERR
+	}
+
+	return nil
+}
+
+func (s *AdminService) CreateProdi(req *request.Prodi) error {
+	model := models.Prodi{
+		Name:    req.Name,
+		Kaprodi: req.Kaprodi,
+		Pengguna: &models.Pengguna{
+			Username: req.Username,
+			Password: req.Username,
+			RoleID:   4,
+		},
+	}
+
+	if err := s.Repo.Create(&model); err != nil {
+		log.Println(err.Error())
+		if utils.IsErrorType(err) {
+			return err
+		}
+		return response.SERVICE_INTERR
+	}
+
+	return nil
+}
+
+func (s *AdminService) FindAllProdi() (*[]response.Prodi, error) {
+	var model []models.Prodi
+
+	if err := s.Repo.Find(&model, ""); err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
+	var resp []response.Prodi
+	for _, item := range model {
+		resp = append(resp, response.Prodi{
+			Uuid:     item.Uuid,
+			Name:     item.Name,
+			Kaprodi:  item.Kaprodi,
+			Username: item.Pengguna.Username,
+		})
+	}
+
+	return &resp, nil
+}
+
+func (s *AdminService) FindProdi(uuid string) (*response.Prodi, error) {
+	var model models.Prodi
+	condition := fmt.Sprintf("uuid = '%s'", uuid)
+	if err := s.Repo.First(&model, condition); err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
+	resp := response.Prodi{
+		Uuid:     model.Uuid,
+		Name:     model.Name,
+		Kaprodi:  model.Kaprodi,
+		Username: model.Pengguna.Username,
+	}
+
+	return &resp, nil
+}
+
+func (s *AdminService) UpdateProdi(uuid string, req *request.Prodi) error {
+	var prodi models.Prodi
+	condition := fmt.Sprintf("uuid = '%s'", uuid)
+	if err := s.Repo.First(&prodi, condition); err != nil {
+		return response.SERVICE_INTERR
+	}
+
+	model := models.Prodi{
+		ID:      prodi.ID,
+		Name:    req.Name,
+		Kaprodi: req.Kaprodi,
+		Pengguna: &models.Pengguna{
+			ID:       prodi.PenggunaID,
+			Username: req.Username,
+			Password: req.Username,
+		},
+	}
+
+	if err := s.Repo.Update(&model, ""); err != nil {
+		log.Println(err.Error())
+		if utils.IsErrorType(err) {
+			return err
+		}
+		return response.SERVICE_INTERR
+	}
+
+	return nil
+}
+
+func (s *AdminService) DeleteProdi(uuid string) error {
+	var model models.Prodi
+	condition := fmt.Sprintf("uuid = '%s'", uuid)
+
+	if err := s.Repo.First(&model, condition); err != nil {
+		log.Println(err.Error())
+		return response.SERVICE_INTERR
+	}
+
+	if err := s.Repo.Delete(&model.Pengguna, []string{"Prodi"}); err != nil {
 		log.Println(err.Error())
 		return response.SERVICE_INTERR
 	}

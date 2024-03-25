@@ -49,65 +49,10 @@ func (r *AdminRepository) FindMahasiswaByAngkatan(tahun int) (*[]models.Mahasisw
 	return &mahasiswa, nil
 }
 
-func (r *AdminRepository) FindMahasiswaPercepatan() (*[]models.Percepatan, error) {
-	var result []models.Percepatan
-	if err := r.db.Preload("Mahasiswa").Find(&result).Error; err != nil {
-		return nil, err
-	}
-	return &result, nil
-}
-
-func (r *AdminRepository) CreateMahasiswaPercepatan(mahasiswa *[]models.Mahasiswa) error {
-	return r.db.Transaction(func(tx *gorm.DB) error {
-		for _, item := range *mahasiswa {
-			if err := tx.Create(&models.Percepatan{MahasiswaID: item.ID}).Error; err != nil {
-				return err
-			}
-		}
-		return nil
-	})
-}
-
 func (r *AdminRepository) Truncate(tableName string) error {
 	return r.db.Exec(fmt.Sprintf("TRUNCATE TABLE %s", tableName)).Error
 }
 
-func (r *AdminRepository) FindMahasiswaPeringatan() (*[]models.Peringatan, error) {
-	var result []models.Peringatan
-	if err := r.db.Preload("Mahasiswa").Find(&result).Error; err != nil {
-		return nil, err
-	}
-	return &result, nil
-}
-
-func (r *AdminRepository) CreateMahasiswaPeringatan(mahasiswa *[]models.Mahasiswa, year uint) error {
-	return r.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Exec("TRUNCATE TABLE peringatan").Error; err != nil {
-			return err
-		}
-
-		for _, item := range *mahasiswa {
-			var status uint
-
-			switch item.Angkatan {
-			case year:
-				status = 1
-			case year - 1:
-				status = 2
-			case year - 2:
-				status = 3
-			default:
-				status = 4
-			}
-
-			if err := tx.Create(&models.Peringatan{MahasiswaID: item.ID, Status: uint(status)}).Error; err != nil {
-				return err
-			}
-		}
-
-		return nil
-	})
-}
 
 func (r *AdminRepository) Create(data interface{}) error {
 	return r.db.Create(data).Error
@@ -136,8 +81,3 @@ func (r *AdminRepository) Delete(data interface{}, assoc []string) error {
 func (r *AdminRepository) Distinct(model interface{}, column, condition string, dest *[]string) error {
 	return r.db.Model(model).Distinct().Where(condition).Pluck(column, dest).Error
 }
-
-func (r *AdminRepository) FindPenasihatPercepatan(dest *[]models.Percepatan, penasihatID uint) error {
-	return r.db.Preload(clause.Associations).Joins("Mahasiswa").Find(dest, "mahasiswa.pembimbing_akademik_id = ?", penasihatID).Error
-}
-

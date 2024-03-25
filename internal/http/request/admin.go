@@ -6,8 +6,20 @@ type SignIn struct {
 }
 
 type Pembimbing struct {
-	Nama string `json:"nama" valid:"required~field nama tidak ditemukan"`
-	Nip  string `json:"nip" valid:"required~field nip tidak ditemukan"`
+	UserUuid string `json:"user_uuid" valid:"required~field user uuid tidak ditemukan"`
+	Nama     string `json:"nama" valid:"required~field nama tidak ditemukan"`
+	Nip      string `json:"nip" valid:"required~field nip tidak ditemukan"`
+}
+
+type UpdatePembimbing struct {
+	Nama     string `json:"nama" valid:"required~field nama tidak ditemukan"`
+	Nip      string `json:"nip" valid:"required~field nip tidak ditemukan"`
+}
+
+type Prodi struct {
+	Name     string `json:"name" valid:"required~field nama tidak ditemukan"`
+	Kaprodi  string `json:"kaprodi" valid:"required~field kaprodi tidak ditemukan"`
+	Username string `json:"username" valid:"required~field username tidak ditemukan"`
 }
 
 type KelasRule struct {

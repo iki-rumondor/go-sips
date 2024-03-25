@@ -16,6 +16,7 @@ type MahasiswaHandlerInterface interface {
 	DeleteAll(*gin.Context)
 
 	GetData(*gin.Context)
+	GetMahasiswaProdi(*gin.Context)
 	GetMahasiswaPercepatan(*gin.Context)
 	GetMahasiswaByUserUuid(*gin.Context)
 	GetMahasiswaByPenasihat(*gin.Context)
@@ -25,10 +26,11 @@ type MahasiswaHandlerInterface interface {
 type MahasiswaServiceInterface interface {
 	ImportMahasiswa(pembimbingUuid, pathFile string) (*[]response.FailedImport, error)
 	GetAllMahasiswa(options map[string]string) (*[]response.Mahasiswa, error)
+	GetMahasiswaProdi(userUuid string) (*[]response.Mahasiswa, error)
 	GetMahasiswa(uuid string) (*models.Mahasiswa, error)
 	UpdateMahasiswa(uuid string, req *request.Mahasiswa) error
 	DeleteMahasiswa(uuid string) error
-	DeleteAllMahasiswa() error
+	DeleteAllMahasiswa(userUuid string) error
 
 	GetMahasiswaPercepatan() (*[]response.Mahasiswa, error)
 	GetDataMahasiswa(nim string) (*response.Mahasiswa, error)

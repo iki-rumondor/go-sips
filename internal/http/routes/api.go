@@ -31,6 +31,7 @@ func StartServer(handlers *config.Handlers) *gin.Engine {
 	admin := router.Group("api").Use(middleware.IsValidJWT())
 	{
 		admin.GET("mahasiswa/user/:userUuid", handlers.MahasiswaHandler.GetMahasiswaByUserUuid)
+		admin.GET("mahasiswa/prodi/:userUuid", handlers.MahasiswaHandler.GetMahasiswaProdi)
 		admin.GET("mahasiswa/penasihat/:userUuid", handlers.MahasiswaHandler.GetMahasiswaByPenasihat)
 		admin.GET("dashboard/penasihat/:userUuid", handlers.AdminHandler.GetPenasihatDashboard)
 		admin.GET("dashboard/kaprodi", handlers.AdminHandler.GetKaprodiDashboard)
@@ -39,19 +40,20 @@ func StartServer(handlers *config.Handlers) *gin.Engine {
 		admin.GET("mahasiswa/:uuid", handlers.MahasiswaHandler.Get)
 		admin.PUT("mahasiswa/:uuid", handlers.MahasiswaHandler.Update)
 		admin.DELETE("mahasiswa/:uuid", handlers.MahasiswaHandler.Delete)
-		admin.DELETE("mahasiswa/all", handlers.MahasiswaHandler.DeleteAll)
-
-		admin.POST("tahun_ajaran", handlers.TahunAjaranHandler.Create)
-		admin.GET("tahun_ajaran", handlers.TahunAjaranHandler.GetAll)
-		admin.GET("tahun_ajaran/:uuid", handlers.TahunAjaranHandler.Get)
-		admin.PUT("tahun_ajaran/:uuid", handlers.TahunAjaranHandler.Update)
-		admin.DELETE("tahun_ajaran/:uuid", handlers.TahunAjaranHandler.Delete)
+		admin.DELETE("mahasiswa/prodi/:userUuid", handlers.MahasiswaHandler.DeleteAll)
 
 		admin.POST("pembimbing", handlers.AdminHandler.CreatePembimbing)
 		admin.GET("pembimbing", handlers.AdminHandler.GetAllPembimbing)
+		admin.GET("pembimbing/prodi/:userUuid", handlers.AdminHandler.GetPembimbingProdi)
 		admin.GET("pembimbing/:uuid", handlers.AdminHandler.GetPembimbing)
 		admin.PUT("pembimbing/:uuid", handlers.AdminHandler.UpdatePembimbing)
 		admin.DELETE("pembimbing/:uuid", handlers.AdminHandler.DeletePembimbing)
+
+		admin.POST("prodi", handlers.AdminHandler.CreateProdi)
+		admin.GET("prodi", handlers.AdminHandler.GetAllProdi)
+		admin.GET("prodi/:uuid", handlers.AdminHandler.GetProdi)
+		admin.PUT("prodi/:uuid", handlers.AdminHandler.UpdateProdi)
+		admin.DELETE("prodi/:uuid", handlers.AdminHandler.DeleteProdi)
 
 		admin.POST("mahasiswa/kelas", handlers.AdminHandler.UpdateKelas)
 		admin.GET("classes", handlers.AdminHandler.GetClasses)

@@ -2,6 +2,7 @@ package models
 
 import (
 	"github.com/google/uuid"
+	"github.com/iki-rumondor/sips/internal/http/response"
 	"github.com/iki-rumondor/sips/internal/utils"
 	"gorm.io/gorm"
 )
@@ -16,6 +17,7 @@ type Pengguna struct {
 	UpdatedAt          int64  `gorm:"autoCreateTime:milli;autoUpdateTime:milli"`
 	PembimbingAkademik *PembimbingAkademik
 	Mahasiswa          *Mahasiswa
+	Prodi              *Prodi
 	Role               *Role
 }
 
@@ -23,12 +25,22 @@ func (Pengguna) TableName() string {
 	return "pengguna"
 }
 
-func (m *Pengguna) BeforeSave(tx *gorm.DB) error {
-	hashPass, err := utils.HashPassword(m.Password)
-	if err != nil {
-		return err
-	}
-	m.Password = hashPass
+func (m *Pengguna) BeforeCreate(tx *gorm.DB) error {
 	m.Uuid = uuid.NewString()
+	return nil
+}
+
+func (m *Pengguna) BeforeSave(tx *gorm.DB) error {
+	if result := tx.First(&Pengguna{}, "username = ? AND id != ?", m.Username, m.ID).RowsAffected; result > 0 {
+		return response.BADREQ_ERR("Username Sudah Terdaftar")
+	}
+
+	if m.Password != "" {
+		hashPass, err := utils.HashPassword(m.Password)
+		if err != nil {
+			return err
+		}
+		m.Password = hashPass
+	}
 	return nil
 }

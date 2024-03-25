@@ -145,7 +145,8 @@ func (h *MahasiswaHandler) Delete(c *gin.Context) {
 }
 
 func (h *MahasiswaHandler) DeleteAll(c *gin.Context) {
-	if err := h.Service.DeleteAllMahasiswa(); err != nil {
+	userUuid := c.Param("userUuid")
+	if err := h.Service.DeleteAllMahasiswa(userUuid); err != nil {
 		utils.HandleError(c, err)
 		return
 	}
@@ -177,6 +178,17 @@ func (h *MahasiswaHandler) GetMahasiswaByUserUuid(c *gin.Context) {
 	}
 
 	resp, err := h.Service.GetMahasiswaByUserUuid(userUuid)
+	if err != nil {
+		utils.HandleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, response.DATA_RES(resp))
+}
+
+func (h *MahasiswaHandler) GetMahasiswaProdi(c *gin.Context) {
+	userUuid := c.Param("userUuid")
+	resp, err := h.Service.GetMahasiswaProdi(userUuid)
 	if err != nil {
 		utils.HandleError(c, err)
 		return

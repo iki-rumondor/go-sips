@@ -13,5 +13,6 @@ func GetAllModels() []Model {
 		{Model: models.PembimbingAkademik{}},
 		{Model: models.Role{}},
 		{Model: models.Pengaturan{}},
+		{Model: models.Prodi{}},
 	}
 }

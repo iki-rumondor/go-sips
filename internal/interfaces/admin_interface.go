@@ -13,9 +13,16 @@ type AdminHandlerInterface interface {
 
 	CreatePembimbing(*gin.Context)
 	GetAllPembimbing(*gin.Context)
+	GetPembimbingProdi(*gin.Context)
 	GetPembimbing(*gin.Context)
 	UpdatePembimbing(*gin.Context)
 	DeletePembimbing(*gin.Context)
+
+	CreateProdi(*gin.Context)
+	GetAllProdi(*gin.Context)
+	GetProdi(*gin.Context)
+	UpdateProdi(*gin.Context)
+	DeleteProdi(*gin.Context)
 
 	UpdateKelas(*gin.Context)
 	GetClasses(*gin.Context)
@@ -30,9 +37,16 @@ type AdminServiceInterface interface {
 
 	CreatePembimbing(req *request.Pembimbing) error
 	FindAllPembimbing() (*[]response.Pembimbing, error)
+	FindPembimbingProdi(userUuid string) (*[]response.Pembimbing, error)
 	FindPembimbing(uuid string) (*response.Pembimbing, error)
-	UpdatePembimbing(uuid string, req *request.Pembimbing) error
+	UpdatePembimbing(uuid string, req *request.UpdatePembimbing) error
 	DeletePembimbing(uuid string) error
+
+	CreateProdi(req *request.Prodi) error
+	FindAllProdi() (*[]response.Prodi, error)
+	FindProdi(uuid string) (*response.Prodi, error)
+	UpdateProdi(uuid string, req *request.Prodi) error
+	DeleteProdi(uuid string) error
 
 	UpdateKelas(req *request.KelasRule) error
 	GetClasses() ([]string, error)
@@ -44,7 +58,6 @@ type AdminServiceInterface interface {
 type AdminRepoInterface interface {
 	FindPenggunaBy(column string, value interface{}) (*models.Pengguna, error)
 	FindMahasiswaByAngkatan(tahun int) (*[]models.Mahasiswa, error)
-	FindPenasihatPercepatan(dest *[]models.Percepatan, penasihatID uint) error
 
 	First(data interface{}, condition string) error
 	Find(data interface{}, condition string) error

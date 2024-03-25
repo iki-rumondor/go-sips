@@ -88,6 +88,17 @@ func (h *AdminHandler) GetAllPembimbing(c *gin.Context) {
 	c.JSON(http.StatusOK, response.DATA_RES(resp))
 }
 
+func (h *AdminHandler) GetPembimbingProdi(c *gin.Context) {
+	userUuid := c.Param("userUuid")
+	resp, err := h.Service.FindPembimbingProdi(userUuid)
+	if err != nil {
+		utils.HandleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, response.DATA_RES(resp))
+}
+
 func (h *AdminHandler) GetPembimbing(c *gin.Context) {
 	uuid := c.Param("uuid")
 	resp, err := h.Service.FindPembimbing(uuid)
@@ -100,7 +111,7 @@ func (h *AdminHandler) GetPembimbing(c *gin.Context) {
 }
 
 func (h *AdminHandler) UpdatePembimbing(c *gin.Context) {
-	var body request.Pembimbing
+	var body request.UpdatePembimbing
 	if err := c.BindJSON(&body); err != nil {
 		utils.HandleError(c, response.BADREQ_ERR(err.Error()))
 		return
@@ -129,6 +140,80 @@ func (h *AdminHandler) DeletePembimbing(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response.SUCCESS_RES("Berhasil Menghapus Data Pembimbing Akademik"))
+}
+
+func (h *AdminHandler) CreateProdi(c *gin.Context) {
+	var body request.Prodi
+	if err := c.BindJSON(&body); err != nil {
+		utils.HandleError(c, response.BADREQ_ERR(err.Error()))
+		return
+	}
+
+	if _, err := govalidator.ValidateStruct(&body); err != nil {
+		utils.HandleError(c, response.BADREQ_ERR(err.Error()))
+		return
+	}
+
+	if err := h.Service.CreateProdi(&body); err != nil {
+		utils.HandleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, response.SUCCESS_RES("Data Program Studi Berhasil Ditambahkan"))
+}
+
+func (h *AdminHandler) GetAllProdi(c *gin.Context) {
+
+	resp, err := h.Service.FindAllProdi()
+	if err != nil {
+		utils.HandleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, response.DATA_RES(resp))
+}
+
+func (h *AdminHandler) GetProdi(c *gin.Context) {
+	uuid := c.Param("uuid")
+	resp, err := h.Service.FindProdi(uuid)
+	if err != nil {
+		utils.HandleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, response.DATA_RES(resp))
+}
+
+func (h *AdminHandler) UpdateProdi(c *gin.Context) {
+	var body request.Prodi
+	if err := c.BindJSON(&body); err != nil {
+		utils.HandleError(c, response.BADREQ_ERR(err.Error()))
+		return
+	}
+
+	if _, err := govalidator.ValidateStruct(&body); err != nil {
+		utils.HandleError(c, response.BADREQ_ERR(err.Error()))
+		return
+	}
+
+	uuid := c.Param("uuid")
+
+	if err := h.Service.UpdateProdi(uuid, &body); err != nil {
+		utils.HandleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, response.SUCCESS_RES("Berhasil Memperbarui Data Program Studi"))
+}
+
+func (h *AdminHandler) DeleteProdi(c *gin.Context) {
+	uuid := c.Param("uuid")
+	if err := h.Service.DeleteProdi(uuid); err != nil {
+		utils.HandleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, response.SUCCESS_RES("Berhasil Menghapus Data Program Studi"))
 }
 
 func (h *AdminHandler) UpdateKelas(c *gin.Context) {
