@@ -28,6 +28,7 @@ type AdminHandlerInterface interface {
 	GetClasses(*gin.Context)
 	GetPenasihatDashboard(*gin.Context)
 	GetKaprodiDashboard(*gin.Context)
+	GetKajurDashboard(*gin.Context)
 	GetPengaturan(*gin.Context)
 }
 
@@ -51,13 +52,16 @@ type AdminServiceInterface interface {
 	UpdateKelas(req *request.KelasRule) error
 	GetClasses() ([]string, error)
 	GetPenasihatDashboard(userUuid string) (map[string]interface{}, error)
-	GetKaprodiDashboard() (map[string]interface{}, error)
+	GetKaprodiDashboard(userUuid string) (map[string]interface{}, error)
+	GetKajurDashboard() (map[string]interface{}, error)
 	GetPengaturan() (*[]response.Pengaturan, error)
 }
 
 type AdminRepoInterface interface {
 	FindPenggunaBy(column string, value interface{}) (*models.Pengguna, error)
 	FindMahasiswaByAngkatan(tahun int) (*[]models.Mahasiswa, error)
+	DistinctProdiMahasiswa(prodiID uint, dest *[]string, column string) error
+	FindProdiMahasiswa(prodiID uint, dest *[]models.Mahasiswa, condition string) error
 
 	First(data interface{}, condition string) error
 	Find(data interface{}, condition string) error

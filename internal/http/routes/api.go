@@ -34,7 +34,8 @@ func StartServer(handlers *config.Handlers) *gin.Engine {
 		admin.GET("mahasiswa/prodi/:userUuid", handlers.MahasiswaHandler.GetMahasiswaProdi)
 		admin.GET("mahasiswa/penasihat/:userUuid", handlers.MahasiswaHandler.GetMahasiswaByPenasihat)
 		admin.GET("dashboard/penasihat/:userUuid", handlers.AdminHandler.GetPenasihatDashboard)
-		admin.GET("dashboard/kaprodi", handlers.AdminHandler.GetKaprodiDashboard)
+		admin.GET("dashboard/kaprodi/:userUuid", handlers.AdminHandler.GetKaprodiDashboard)
+		admin.GET("dashboard/kajur", handlers.AdminHandler.GetKajurDashboard)
 
 		admin.POST("mahasiswa/import", handlers.MahasiswaHandler.Import)
 		admin.GET("mahasiswa/:uuid", handlers.MahasiswaHandler.Get)

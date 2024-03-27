@@ -260,8 +260,18 @@ func (h *AdminHandler) GetPenasihatDashboard(c *gin.Context) {
 }
 
 func (h *AdminHandler) GetKaprodiDashboard(c *gin.Context) {
+	userUuid := c.Param("userUuid")
+	resp, err := h.Service.GetKaprodiDashboard(userUuid)
+	if err != nil {
+		utils.HandleError(c, err)
+		return
+	}
 
-	resp, err := h.Service.GetKaprodiDashboard()
+	c.JSON(http.StatusOK, response.DATA_RES(resp))
+}
+
+func (h *AdminHandler) GetKajurDashboard(c *gin.Context) {
+	resp, err := h.Service.GetKajurDashboard()
 	if err != nil {
 		utils.HandleError(c, err)
 		return

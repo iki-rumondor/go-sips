@@ -53,7 +53,6 @@ func (r *AdminRepository) Truncate(tableName string) error {
 	return r.db.Exec(fmt.Sprintf("TRUNCATE TABLE %s", tableName)).Error
 }
 
-
 func (r *AdminRepository) Create(data interface{}) error {
 	return r.db.Create(data).Error
 }
@@ -80,4 +79,16 @@ func (r *AdminRepository) Delete(data interface{}, assoc []string) error {
 
 func (r *AdminRepository) Distinct(model interface{}, column, condition string, dest *[]string) error {
 	return r.db.Model(model).Distinct().Where(condition).Pluck(column, dest).Error
+}
+
+func (r *AdminRepository) DistinctProdiMahasiswa(prodiID uint, dest *[]string, column string) error {
+	subQuery := r.db.Model(&models.PembimbingAkademik{}).Where("prodi_id = ?", prodiID).Select("id")
+
+	return r.db.Model(&models.Mahasiswa{}).Distinct().Where("pembimbing_akademik_id IN (?)", subQuery).Pluck(column, dest).Error
+}
+
+func (r *AdminRepository) FindProdiMahasiswa(prodiID uint, dest *[]models.Mahasiswa, condition string) error {
+	subQuery := r.db.Model(&models.PembimbingAkademik{}).Where("prodi_id = ?", prodiID).Select("id")
+
+	return r.db.Where("pembimbing_akademik_id IN (?)", subQuery).Find(dest, condition).Error
 }

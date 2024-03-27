@@ -258,6 +258,16 @@ func (s *MahasiswaService) UpdateMahasiswa(uuid string, req *request.Mahasiswa) 
 		return response.SERVICE_INTERR
 	}
 
+	if err := s.SinkronKelas(); err != nil {
+		log.Println("Gagal Sinkronisasi Kelas")
+		log.Println(err.Error())
+	}
+
+	if err := s.SinkronPercepatan(); err != nil {
+		log.Println("Gagal Sinkronisasi Percepatan")
+		log.Println(err.Error())
+	}
+
 	return nil
 }
 

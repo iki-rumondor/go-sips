@@ -440,18 +440,67 @@ func (s *AdminService) GetPenasihatDashboard(userUuid string) (map[string]interf
 	return resp, nil
 }
 
-func (s *AdminService) GetKaprodiDashboard() (map[string]interface{}, error) {
-
-	var model models.Mahasiswa
-	var listAngkatan []string
-	var amountAngkatan []int
-
-	if err := s.Repo.Distinct(&model, "angkatan", "", &listAngkatan); err != nil {
+func (s *AdminService) GetKaprodiDashboard(userUuid string) (map[string]interface{}, error) {
+	var user models.Pengguna
+	condition := fmt.Sprintf("uuid = '%s'", userUuid)
+	if err := s.Repo.First(&user, condition); err != nil {
 		log.Println(err.Error())
 		return nil, response.SERVICE_INTERR
 	}
 
-	sort.Strings(listAngkatan)
+	var listAngkatan []string
+	var amountAngkatan []int
+
+	if err := s.Repo.DistinctProdiMahasiswa(user.Prodi.ID, &listAngkatan, "angkatan"); err != nil {
+		return nil, response.SERVICE_INTERR
+	}
+
+	for _, item := range listAngkatan {
+		var mahasiswa []models.Mahasiswa
+		condition := fmt.Sprintf("angkatan = '%s'", item)
+		if err := s.Repo.FindProdiMahasiswa(user.Prodi.ID, &mahasiswa, condition); err != nil {
+			log.Println(err.Error())
+			return nil, response.SERVICE_INTERR
+		}
+		amountAngkatan = append(amountAngkatan, len(mahasiswa))
+	}
+
+	var dropOut []models.Mahasiswa
+	rule := time.Now().Year() - 5
+	condition = fmt.Sprintf("angkatan < '%d' ", rule)
+	if err := s.Repo.FindProdiMahasiswa(user.Prodi.ID, &dropOut, condition); err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
+	var percepatan []models.Mahasiswa
+	condition = fmt.Sprintf("percepatan = %v", true)
+	if err := s.Repo.FindProdiMahasiswa(user.Prodi.ID, &percepatan, condition); err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
+	resp := map[string]interface{}{
+		"prodi":          user.Prodi.Name,
+		"listAngkatan":   listAngkatan,
+		"amountAngkatan": amountAngkatan,
+		"do":             len(dropOut),
+		"percepatan":     len(percepatan),
+	}
+
+	return resp, nil
+}
+
+func (s *AdminService) GetKajurDashboard() (map[string]interface{}, error) {
+
+	var listAngkatan []string
+	var amountAngkatan []int
+	var listProdi []string
+	var amountProdi []int
+
+	if err := s.Repo.Distinct(&models.Mahasiswa{}, "angkatan", "", &listAngkatan); err != nil {
+		return nil, response.SERVICE_INTERR
+	}
 
 	for _, item := range listAngkatan {
 		var mahasiswa []models.Mahasiswa
@@ -478,7 +527,25 @@ func (s *AdminService) GetKaprodiDashboard() (map[string]interface{}, error) {
 		return nil, response.SERVICE_INTERR
 	}
 
+	var prodi []models.Prodi
+	if err := s.Repo.Find(&prodi, ""); err != nil {
+		return nil, response.SERVICE_INTERR
+	}
+
+	for _, item := range prodi {
+		var mahasiswa []models.Mahasiswa
+		if err := s.Repo.FindProdiMahasiswa(item.ID, &mahasiswa, ""); err != nil {
+			log.Println(err.Error())
+			return nil, response.SERVICE_INTERR
+		}
+
+		listProdi = append(listProdi, item.Name)
+		amountProdi = append(amountProdi, len(mahasiswa))
+	}
+
 	resp := map[string]interface{}{
+		"listProdi":      listProdi,
+		"amountProdi":    amountProdi,
 		"listAngkatan":   listAngkatan,
 		"amountAngkatan": amountAngkatan,
 		"do":             len(dropOut),
