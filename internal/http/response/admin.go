@@ -1,9 +1,9 @@
 package response
 
 type Pembimbing struct {
-	Uuid string `json:"uuid"`
-	Nama string `json:"nama"`
-	Nip  string `json:"nip"`
+	Uuid     string `json:"uuid"`
+	Nama     string `json:"nama"`
+	Username string `json:"username"`
 }
 
 type Prodi struct {

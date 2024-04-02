@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -55,4 +56,10 @@ func GenerateYearsUntil(startYear int) []string {
 	}
 
 	return years
+}
+
+func GetLastSentence(sentance string) string {
+	words := strings.Split(sentance, " ")
+	lastWord := words[len(words)-1]
+	return lastWord
 }

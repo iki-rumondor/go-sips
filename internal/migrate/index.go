@@ -83,6 +83,10 @@ func freshDatabase(db *gorm.DB) error {
 			Name:  "jumlah_mahasiswa",
 			Value: "20",
 		},
+		{
+			Name:  "maksimal_percepatan",
+			Value: "10",
+		},
 	})
 
 	return nil

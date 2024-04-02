@@ -1,16 +1,19 @@
 package services
 
 import (
+	"encoding/csv"
 	"errors"
 	"fmt"
 	"log"
 	"math"
+	"os"
 	"strconv"
 
 	"github.com/iki-rumondor/sips/internal/http/request"
 	"github.com/iki-rumondor/sips/internal/http/response"
 	"github.com/iki-rumondor/sips/internal/interfaces"
 	"github.com/iki-rumondor/sips/internal/models"
+	"github.com/iki-rumondor/sips/internal/utils"
 	"github.com/xuri/excelize/v2"
 	"gorm.io/gorm"
 )
@@ -23,6 +26,124 @@ func NewMahasiswaService(repo interfaces.MahasiswaRepoInterface) interfaces.Maha
 	return &MahasiswaService{
 		Repo: repo,
 	}
+}
+
+func (s *MahasiswaService) CreateMahasiswaCSV(userUuid, pathFile string) (*[]response.FailedImport, error) {
+	var user models.Pengguna
+	condition := fmt.Sprintf("uuid = '%s'", userUuid)
+	if err := s.Repo.First(&user, condition); err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
+	file, err := os.Open(pathFile)
+	if err != nil {
+		return nil, response.SERVICE_INTERR
+	}
+	defer file.Close()
+
+	reader := csv.NewReader(file)
+	reader.Comma = ';'
+
+	lines, err := reader.ReadAll()
+	if err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
+	var failedImport []response.FailedImport
+
+	for _, line := range lines {
+		var pembimbing models.PembimbingAkademik
+		if err := s.Repo.First(&pembimbing, fmt.Sprintf("nama = '%s'", line[7])); err != nil {
+			pengguna := models.Pengguna{
+				Username: utils.GenerateRandomString(8),
+				Password: utils.GenerateRandomString(8),
+				RoleID:   2,
+			}
+
+			if err := s.Repo.Create(&pengguna); err != nil {
+				return nil, response.SERVICE_INTERR
+			}
+
+			pembimbing := models.PembimbingAkademik{
+				ProdiID:    user.Prodi.ID,
+				Nama:       line[7],
+				PenggunaID: pengguna.ID,
+			}
+
+			if err := s.Repo.Create(&pembimbing); err != nil {
+				return nil, response.SERVICE_INTERR
+			}
+		}
+
+		angkatan, err := strconv.Atoi(line[1])
+		if err != nil {
+			failedImport = append(failedImport, response.FailedImport{
+				Nim:   line[2],
+				Nama:  line[3],
+				Pesan: "Angkatan Bukan Angka",
+			})
+			continue
+		}
+
+		totalSks, err := strconv.Atoi(line[8])
+		if err != nil {
+			failedImport = append(failedImport, response.FailedImport{
+				Nim:   line[2],
+				Nama:  line[3],
+				Pesan: "Total SKS Bukan Angka",
+			})
+			continue
+		}
+
+		ipk, err := strconv.ParseFloat(line[9], 32)
+		if err != nil {
+			failedImport = append(failedImport, response.FailedImport{
+				Nim:   line[2],
+				Nama:  line[3],
+				Pesan: "IPK Bukan Angka",
+			})
+			continue
+		}
+
+		mahasiswa := models.Mahasiswa{
+			Pengguna: &models.Pengguna{
+				Username: line[2],
+				Password: line[2],
+				RoleID:   2,
+			},
+			PembimbingAkademikID: pembimbing.ID,
+			Nim:                  line[2],
+			Nama:                 line[3],
+			Angkatan:             uint(angkatan),
+			TotalSks:             uint(totalSks),
+			Ipk:                  math.Round(ipk*100) / 100,
+		}
+
+		if err := s.Repo.CreateMahasiswa(&mahasiswa); err != nil {
+			failedImport = append(failedImport, response.FailedImport{
+				Nim:   line[2],
+				Nama:  line[3],
+				Pesan: "Gagal Menambahkan Mahasiswa: " + err.Error(),
+			})
+			continue
+		}
+
+	}
+
+	if err := s.SinkronKelas(); err != nil {
+		log.Println("Gagal Sinkronisasi Kelas")
+		log.Println(err.Error())
+	}
+
+	if err := s.SinkronPercepatan(); err != nil {
+		log.Println("Gagal Sinkronisasi Percepatan")
+		log.Println(err.Error())
+	}
+
+	return &failedImport, nil
+
 }
 
 func (s *MahasiswaService) ImportMahasiswa(pembimbingUuid, pathFile string) (*[]response.FailedImport, error) {
@@ -154,7 +275,6 @@ func (s *MahasiswaService) GetAllMahasiswa(options map[string]string) (*[]respon
 			Pembimbing: &response.Pembimbing{
 				Uuid: item.PembimbingAkademik.Uuid,
 				Nama: item.PembimbingAkademik.Nama,
-				Nip:  item.PembimbingAkademik.Nip,
 			},
 			CreatedAt: item.CreatedAt,
 			UpdatedAt: item.UpdatedAt,
@@ -199,7 +319,6 @@ func (s *MahasiswaService) GetMahasiswaProdi(userUuid string) (*[]response.Mahas
 		pembimbing := &response.Pembimbing{
 			Uuid: item.Uuid,
 			Nama: item.Nama,
-			Nip:  item.Nip,
 		}
 
 		for _, item := range *item.Mahasiswa {
@@ -340,7 +459,6 @@ func (s *MahasiswaService) GetDataMahasiswa(nim string) (*response.Mahasiswa, er
 		Pembimbing: &response.Pembimbing{
 			Uuid: mahasiswa.PembimbingAkademik.Uuid,
 			Nama: mahasiswa.PembimbingAkademik.Nama,
-			Nip:  mahasiswa.PembimbingAkademik.Nip,
 		},
 	}
 
@@ -375,7 +493,6 @@ func (s *MahasiswaService) GetMahasiswaByUserUuid(userUuid string) (*response.Ma
 		Pembimbing: &response.Pembimbing{
 			Uuid: result.PembimbingAkademik.Uuid,
 			Nama: result.PembimbingAkademik.Nama,
-			Nip:  result.PembimbingAkademik.Nip,
 		},
 	}
 
@@ -426,7 +543,6 @@ func (s *MahasiswaService) GetAllMahasiswaByPenasihat(userUuid string, options m
 			Pembimbing: &response.Pembimbing{
 				Uuid: item.PembimbingAkademik.Uuid,
 				Nama: item.PembimbingAkademik.Nama,
-				Nip:  item.PembimbingAkademik.Nip,
 			},
 		})
 	}
@@ -449,16 +565,16 @@ func (s *MahasiswaService) UpdatePengaturan(req *request.Pengaturan) error {
 			Value: req.TotalSks,
 		},
 		{
-			Name:  "jumlah_error",
-			Value: req.JumlahError,
-		},
-		{
 			Name:  "ipk",
 			Value: req.Ipk,
 		},
 		{
 			Name:  "jumlah_mahasiswa",
 			Value: req.JumlahMahasiswa,
+		},
+		{
+			Name:  "maksimal_percepatan",
+			Value: req.MaksimalPercepatan,
 		},
 	}
 
@@ -519,9 +635,15 @@ func (s *MahasiswaService) SinkronPercepatan() error {
 }
 
 func (s *MahasiswaService) GetMahasiswaPercepatan() (*[]response.Mahasiswa, error) {
+	var option models.Pengaturan
+	if err := s.Repo.First(&option, "name = maksimal_percepatan"); err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
 	var model []models.Mahasiswa
 
-	if err := s.Repo.Find(&model, "percepatan = true", "ipk DESC"); err != nil {
+	if err := s.Repo.FindLimit(&model, "percepatan = true", "ipk DESC", option.Value); err != nil {
 		log.Println(err.Error())
 		return nil, response.SERVICE_INTERR
 	}
@@ -542,7 +664,6 @@ func (s *MahasiswaService) GetMahasiswaPercepatan() (*[]response.Mahasiswa, erro
 			Pembimbing: &response.Pembimbing{
 				Uuid: item.PembimbingAkademik.Uuid,
 				Nama: item.PembimbingAkademik.Nama,
-				Nip:  item.PembimbingAkademik.Nip,
 			},
 			CreatedAt: item.CreatedAt,
 			UpdatedAt: item.UpdatedAt,

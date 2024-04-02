@@ -24,6 +24,7 @@ type MahasiswaHandlerInterface interface {
 }
 
 type MahasiswaServiceInterface interface {
+	CreateMahasiswaCSV(userUuid, pathFile string) (*[]response.FailedImport, error)
 	ImportMahasiswa(pembimbingUuid, pathFile string) (*[]response.FailedImport, error)
 	GetAllMahasiswa(options map[string]string) (*[]response.Mahasiswa, error)
 	GetMahasiswaProdi(userUuid string) (*[]response.Mahasiswa, error)
@@ -48,10 +49,13 @@ type MahasiswaRepoInterface interface {
 
 	FindBy(tableName, column string, value interface{}) (map[string]interface{}, error)
 	Find(data interface{}, condition, order string) error
+	FindLimit(data interface{}, condition, order, limit string) error
 	First(data interface{}, condition string) error
+	FirstOrCreate(dest, model interface{}) error
 	Truncate(tableName string) error
 	UpdatePengaturan(model *[]models.Pengaturan) error
 	UpdateKelas() error
 	UpdatePercepatan() error
 	Delete(data interface{}, assoc []string) error
+	Create(data interface{}) error
 }

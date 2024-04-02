@@ -69,6 +69,10 @@ func (r *MahasiswaRepository) Find(data interface{}, condition, order string) er
 	return r.db.Preload(clause.Associations).Order(order).Find(data, condition).Error
 }
 
+func (r *MahasiswaRepository) FindLimit(data interface{}, condition, order, limit string) error {
+	return r.db.Preload(clause.Associations).Order(order).Find(data, condition).Error
+}
+
 func (r *MahasiswaRepository) UpdatePengaturan(model *[]models.Pengaturan) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		for _, item := range *model {
@@ -142,23 +146,23 @@ func (r *MahasiswaRepository) UpdatePercepatan() error {
 		return err
 	}
 
-	var jumlahError models.Pengaturan
-	if err := r.db.Find(&jumlahError, "name = ?", "jumlah_error").Error; err != nil {
-		return err
-	}
+	// var jumlahError models.Pengaturan
+	// if err := r.db.Find(&jumlahError, "name = ?", "jumlah_error").Error; err != nil {
+	// 	return err
+	// }
 
 	var angkatan models.Pengaturan
 	if err := r.db.Find(&angkatan, "name = ?", "angkatan_percepatan").Error; err != nil {
 		return err
 	}
 
-	jmlError, _ := strconv.Atoi(jumlahError.Value)
+	// jmlError, _ := strconv.Atoi(jumlahError.Value)
 	totalSks, _ := strconv.Atoi(sks.Value)
 	ipkFloat, _ := strconv.ParseFloat(ipk.Value, 64)
 	angkatanInt, _ := strconv.Atoi(angkatan.Value)
 
 	var mahasiswa []models.Mahasiswa
-	if err := r.db.Find(&mahasiswa, "total_sks >= ? AND jumlah_error <= ? AND ipk >= ? AND angkatan >= ?", totalSks, jmlError, ipkFloat, angkatanInt).Error; err != nil {
+	if err := r.db.Find(&mahasiswa, "total_sks >= ?  AND ipk >= ? AND angkatan >= ?", totalSks, ipkFloat, angkatanInt).Error; err != nil {
 		return err
 	}
 
@@ -188,4 +192,12 @@ func (r *MahasiswaRepository) Truncate(tableName string) error {
 
 func (r *MahasiswaRepository) Delete(data interface{}, assoc []string) error {
 	return r.db.Select(assoc).Delete(data).Error
+}
+
+func (r *MahasiswaRepository) FirstOrCreate(dest, model interface{}) error {
+	return r.db.Where(model).FirstOrCreate(dest).Error
+}
+
+func (r *MahasiswaRepository) Create(data interface{}) error {
+	return r.db.Create(data).Error
 }

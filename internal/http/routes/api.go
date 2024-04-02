@@ -37,7 +37,7 @@ func StartServer(handlers *config.Handlers) *gin.Engine {
 		admin.GET("dashboard/kaprodi/:userUuid", handlers.AdminHandler.GetKaprodiDashboard)
 		admin.GET("dashboard/kajur", handlers.AdminHandler.GetKajurDashboard)
 
-		admin.POST("mahasiswa/import", handlers.MahasiswaHandler.Import)
+		admin.POST("mahasiswa/import/:userUuid", handlers.MahasiswaHandler.Import)
 		admin.GET("mahasiswa/:uuid", handlers.MahasiswaHandler.Get)
 		admin.PUT("mahasiswa/:uuid", handlers.MahasiswaHandler.Update)
 		admin.DELETE("mahasiswa/:uuid", handlers.MahasiswaHandler.Delete)

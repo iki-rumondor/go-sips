@@ -77,7 +77,6 @@ func (s *AdminService) GetUser(userUuid string) (*response.User, error) {
 		penasihat = response.Pembimbing{
 			Uuid: model.PembimbingAkademik.Uuid,
 			Nama: model.PembimbingAkademik.Nama,
-			Nip:  model.PembimbingAkademik.Nip,
 		}
 	}
 
@@ -102,13 +101,12 @@ func (s *AdminService) CreatePembimbing(req *request.Pembimbing) error {
 
 	model := models.PembimbingAkademik{
 		Nama:    req.Nama,
-		Nip:     req.Nip,
 		ProdiID: user.Prodi.ID,
-		Pengguna: &models.Pengguna{
-			Username: req.Nip,
-			Password: req.Nip,
-			RoleID:   3,
-		},
+		// Pengguna: &models.Pengguna{
+		// 	Username: req.Nip,
+		// 	Password: req.Nip,
+		// 	RoleID:   3,
+		// },
 	}
 
 	if err := s.Repo.Create(&model); err != nil {
@@ -133,9 +131,9 @@ func (s *AdminService) FindAllPembimbing() (*[]response.Pembimbing, error) {
 	var resp []response.Pembimbing
 	for _, item := range model {
 		resp = append(resp, response.Pembimbing{
-			Uuid: item.Uuid,
-			Nama: item.Nama,
-			Nip:  item.Nip,
+			Uuid:     item.Uuid,
+			Nama:     item.Nama,
+			Username: item.Pengguna.Username,
 		})
 	}
 
@@ -160,9 +158,9 @@ func (s *AdminService) FindPembimbingProdi(userUuid string) (*[]response.Pembimb
 	var resp []response.Pembimbing
 	for _, item := range model {
 		resp = append(resp, response.Pembimbing{
-			Uuid: item.Uuid,
-			Nama: item.Nama,
-			Nip:  item.Nip,
+			Uuid:     item.Uuid,
+			Nama:     item.Nama,
+			Username: item.Pengguna.Username,
 		})
 	}
 
@@ -178,9 +176,9 @@ func (s *AdminService) FindPembimbing(uuid string) (*response.Pembimbing, error)
 	}
 
 	resp := response.Pembimbing{
-		Uuid: model.Uuid,
-		Nama: model.Nama,
-		Nip:  model.Nip,
+		Uuid:     model.Uuid,
+		Nama:     model.Nama,
+		Username: model.Pengguna.Username,
 	}
 
 	return &resp, nil
@@ -190,7 +188,6 @@ func (s *AdminService) UpdatePembimbing(uuid string, req *request.UpdatePembimbi
 	model := models.PembimbingAkademik{
 		Uuid: uuid,
 		Nama: req.Nama,
-		Nip:  req.Nip,
 	}
 
 	condition := fmt.Sprintf("uuid = '%s'", uuid)

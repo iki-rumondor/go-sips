@@ -15,3 +15,12 @@ func IsExcelFile(file *multipart.FileHeader) error {
 
 	return nil
 }
+
+func IsCsvFile(file *multipart.FileHeader) error {
+
+	if fileExt := strings.ToLower(file.Filename[strings.LastIndex(file.Filename, ".")+1:]); fileExt != "csv" {
+		return response.BADREQ_ERR("Ekstensi File Harus Berupa .csv")
+	}
+
+	return nil
+}

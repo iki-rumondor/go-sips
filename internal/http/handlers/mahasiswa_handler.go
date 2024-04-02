@@ -25,18 +25,13 @@ func NewMahasiswaHandler(service interfaces.MahasiswaServiceInterface) interface
 }
 
 func (h *MahasiswaHandler) Import(c *gin.Context) {
-	pembimbingUuid := c.PostForm("pembimbing_uuid")
-	if pembimbingUuid == "" {
-		utils.HandleError(c, response.BADREQ_ERR("Pembimbing Tidak Ditemukan"))
-		return
-	}
 	file, err := c.FormFile("mahasiswa")
 	if err != nil {
 		utils.HandleError(c, response.NOTFOUND_ERR("File Tidak Ditemukan"))
 		return
 	}
 
-	if err := utils.IsExcelFile(file); err != nil {
+	if err := utils.IsCsvFile(file); err != nil {
 		utils.HandleError(c, err)
 		return
 	}
@@ -54,7 +49,8 @@ func (h *MahasiswaHandler) Import(c *gin.Context) {
 		}
 	}()
 
-	failedImport, err := h.Service.ImportMahasiswa(pembimbingUuid, pathFile)
+	uuid := c.Param("userUuid")
+	failedImport, err := h.Service.CreateMahasiswaCSV(uuid, pathFile)
 	if err != nil {
 		utils.HandleError(c, err)
 		return
@@ -101,7 +97,6 @@ func (h *MahasiswaHandler) Get(c *gin.Context) {
 		Pembimbing: &response.Pembimbing{
 			Uuid: result.PembimbingAkademik.Uuid,
 			Nama: result.PembimbingAkademik.Nama,
-			Nip:  result.PembimbingAkademik.Nip,
 		},
 		CreatedAt: result.CreatedAt,
 		UpdatedAt: result.UpdatedAt,
