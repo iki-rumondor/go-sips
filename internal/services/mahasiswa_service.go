@@ -636,7 +636,7 @@ func (s *MahasiswaService) SinkronPercepatan() error {
 
 func (s *MahasiswaService) GetMahasiswaPercepatan() (*[]response.Mahasiswa, error) {
 	var option models.Pengaturan
-	if err := s.Repo.First(&option, "name = maksimal_percepatan"); err != nil {
+	if err := s.Repo.First(&option, "name = 'maksimal_percepatan'"); err != nil {
 		log.Println(err.Error())
 		return nil, response.SERVICE_INTERR
 	}
