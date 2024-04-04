@@ -201,3 +201,18 @@ func (r *MahasiswaRepository) FirstOrCreate(dest, model interface{}) error {
 func (r *MahasiswaRepository) Create(data interface{}) error {
 	return r.db.Create(data).Error
 }
+
+func (r *MahasiswaRepository) DeleteMahasiswaPengguna(data *[]models.Mahasiswa) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		for _, item := range *data {
+			if err := r.db.Delete(item).Error; err != nil {
+				return err
+			}
+			if err := r.db.Delete(&models.Pengguna{}, "id = ?", item.PenggunaID).Error; err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+}

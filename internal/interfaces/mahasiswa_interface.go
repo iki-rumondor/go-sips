@@ -56,6 +56,6 @@ type MahasiswaRepoInterface interface {
 	UpdatePengaturan(model *[]models.Pengaturan) error
 	UpdateKelas() error
 	UpdatePercepatan() error
-	Delete(data interface{}, assoc []string) error
+	DeleteMahasiswaPengguna(data *[]models.Mahasiswa) error
 	Create(data interface{}) error
 }

@@ -427,7 +427,7 @@ func (s *MahasiswaService) DeleteAllMahasiswa(userUuid string) error {
 		mahasiswa = append(mahasiswa, *item.Mahasiswa...)
 	}
 
-	if err := s.Repo.Delete(&mahasiswa, nil); err != nil {
+	if err := s.Repo.DeleteMahasiswaPengguna(&mahasiswa); err != nil {
 		log.Println(err)
 		return response.SERVICE_INTERR
 	}
