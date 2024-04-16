@@ -30,6 +30,7 @@ type AdminHandlerInterface interface {
 	GetKaprodiDashboard(*gin.Context)
 	GetKajurDashboard(*gin.Context)
 	GetPengaturan(*gin.Context)
+	GetPengaturanByName(*gin.Context)
 }
 
 type AdminServiceInterface interface {
@@ -55,6 +56,7 @@ type AdminServiceInterface interface {
 	GetKaprodiDashboard(userUuid string) (map[string]interface{}, error)
 	GetKajurDashboard() (map[string]interface{}, error)
 	GetPengaturan() (*[]response.Pengaturan, error)
+	GetPengaturanByName(name string) (*response.Pengaturan, error)
 }
 
 type AdminRepoInterface interface {

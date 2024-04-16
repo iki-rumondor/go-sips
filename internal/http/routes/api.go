@@ -59,6 +59,7 @@ func StartServer(handlers *config.Handlers) *gin.Engine {
 		admin.POST("mahasiswa/kelas", handlers.AdminHandler.UpdateKelas)
 		admin.GET("classes", handlers.AdminHandler.GetClasses)
 		admin.GET("pengaturan", handlers.AdminHandler.GetPengaturan)
+		admin.GET("pengaturan/:name", handlers.AdminHandler.GetPengaturanByName)
 		admin.PUT("pengaturan", handlers.MahasiswaHandler.UpdatePengaturan)
 	}
 

@@ -290,3 +290,14 @@ func (h *AdminHandler) GetPengaturan(c *gin.Context) {
 
 	c.JSON(http.StatusOK, response.DATA_RES(resp))
 }
+
+func (h *AdminHandler) GetPengaturanByName(c *gin.Context) {
+	name := c.Param("name")
+	resp, err := h.Service.GetPengaturanByName(name)
+	if err != nil {
+		utils.HandleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, response.DATA_RES(resp))
+}

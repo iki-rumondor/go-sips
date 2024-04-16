@@ -69,8 +69,8 @@ func (r *MahasiswaRepository) Find(data interface{}, condition, order string) er
 	return r.db.Preload(clause.Associations).Order(order).Find(data, condition).Error
 }
 
-func (r *MahasiswaRepository) FindLimit(data interface{}, condition, order, limit string) error {
-	return r.db.Preload(clause.Associations).Order(order).Find(data, condition).Error
+func (r *MahasiswaRepository) FindLimit(data interface{}, condition, order string, limit int) error {
+	return r.db.Preload(clause.Associations).Order(order).Limit(limit).Find(data, condition).Error
 }
 
 func (r *MahasiswaRepository) UpdatePengaturan(model *[]models.Pengaturan) error {

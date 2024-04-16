@@ -55,10 +55,12 @@ func (s *MahasiswaService) CreateMahasiswaCSV(userUuid, pathFile string) (*[]res
 
 	for _, line := range lines {
 		var pembimbing models.PembimbingAkademik
+		var pembimbingID uint
 		if err := s.Repo.First(&pembimbing, fmt.Sprintf("nama = '%s'", line[7])); err != nil {
+			username := utils.GenerateRandomString(8)
 			pengguna := models.Pengguna{
-				Username: utils.GenerateRandomString(8),
-				Password: utils.GenerateRandomString(8),
+				Username: username,
+				Password: username,
 				RoleID:   2,
 			}
 
@@ -66,15 +68,21 @@ func (s *MahasiswaService) CreateMahasiswaCSV(userUuid, pathFile string) (*[]res
 				return nil, response.SERVICE_INTERR
 			}
 
-			pembimbing := models.PembimbingAkademik{
+			pembimbingCreate := models.PembimbingAkademik{
 				ProdiID:    user.Prodi.ID,
 				Nama:       line[7],
 				PenggunaID: pengguna.ID,
 			}
 
-			if err := s.Repo.Create(&pembimbing); err != nil {
+			if err := s.Repo.Create(&pembimbingCreate); err != nil {
 				return nil, response.SERVICE_INTERR
 			}
+
+			pembimbingID = pembimbingCreate.ID
+		}
+
+		if pembimbingID == 0 {
+			pembimbingID = pembimbing.ID
 		}
 
 		angkatan, err := strconv.Atoi(line[1])
@@ -113,7 +121,7 @@ func (s *MahasiswaService) CreateMahasiswaCSV(userUuid, pathFile string) (*[]res
 				Password: line[2],
 				RoleID:   2,
 			},
-			PembimbingAkademikID: pembimbing.ID,
+			PembimbingAkademikID: pembimbingID,
 			Nim:                  line[2],
 			Nama:                 line[3],
 			Angkatan:             uint(angkatan),
@@ -641,9 +649,11 @@ func (s *MahasiswaService) GetMahasiswaPercepatan() (*[]response.Mahasiswa, erro
 		return nil, response.SERVICE_INTERR
 	}
 
+	limit, _ := strconv.Atoi(option.Value)
+
 	var model []models.Mahasiswa
 
-	if err := s.Repo.FindLimit(&model, "percepatan = true", "ipk DESC", option.Value); err != nil {
+	if err := s.Repo.FindLimit(&model, "percepatan = true", "ipk DESC", limit); err != nil {
 		log.Println(err.Error())
 		return nil, response.SERVICE_INTERR
 	}

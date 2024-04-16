@@ -571,3 +571,20 @@ func (s *AdminService) GetPengaturan() (*[]response.Pengaturan, error) {
 
 	return &resp, nil
 }
+
+func (s *AdminService) GetPengaturanByName(name string) (*response.Pengaturan, error) {
+	var model models.Pengaturan
+
+	if err := s.Repo.First(&model, fmt.Sprintf("name = '%s'", name)); err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
+	resp := response.Pengaturan{
+		Uuid:  model.Uuid,
+		Name:  model.Name,
+		Value: model.Value,
+	}
+
+	return &resp, nil
+}

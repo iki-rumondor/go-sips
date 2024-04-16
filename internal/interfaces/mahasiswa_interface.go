@@ -49,7 +49,7 @@ type MahasiswaRepoInterface interface {
 
 	FindBy(tableName, column string, value interface{}) (map[string]interface{}, error)
 	Find(data interface{}, condition, order string) error
-	FindLimit(data interface{}, condition, order, limit string) error
+	FindLimit(data interface{}, condition, order string, limit int) error
 	First(data interface{}, condition string) error
 	FirstOrCreate(dest, model interface{}) error
 	Truncate(tableName string) error
