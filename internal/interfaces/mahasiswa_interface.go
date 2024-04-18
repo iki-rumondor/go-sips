@@ -18,6 +18,7 @@ type MahasiswaHandlerInterface interface {
 	GetData(*gin.Context)
 	GetMahasiswaProdi(*gin.Context)
 	GetMahasiswaPercepatan(*gin.Context)
+	GetProdiPercepatan(*gin.Context)
 	GetMahasiswaByUserUuid(*gin.Context)
 	GetMahasiswaByPenasihat(*gin.Context)
 	UpdatePengaturan(*gin.Context)
@@ -34,6 +35,7 @@ type MahasiswaServiceInterface interface {
 	DeleteAllMahasiswa(userUuid string) error
 
 	GetMahasiswaPercepatan() (*[]response.Mahasiswa, error)
+	GetProdiPercepatan(prodiUuid string) (*[]response.Mahasiswa, error)
 	GetDataMahasiswa(nim string) (*response.Mahasiswa, error)
 	GetMahasiswaByUserUuid(userUuid string) (*response.Mahasiswa, error)
 	GetAllMahasiswaByPenasihat(userUuid string, options map[string]string) (*[]response.Mahasiswa, error)
@@ -46,7 +48,7 @@ type MahasiswaRepoInterface interface {
 	FindMahasiswaByUuid(uuid string) (*models.Mahasiswa, error)
 	UpdateMahasiswa(model *models.Mahasiswa) error
 	DeleteMahasiswa(model *models.Mahasiswa) error
-
+	FindMahasiswaPercepatan(data *[]models.Mahasiswa, prodiID uint, limit int, order string) error
 	FindBy(tableName, column string, value interface{}) (map[string]interface{}, error)
 	Find(data interface{}, condition, order string) error
 	FindLimit(data interface{}, condition, order string, limit int) error

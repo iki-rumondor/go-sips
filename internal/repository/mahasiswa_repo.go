@@ -28,7 +28,7 @@ func (r *MahasiswaRepository) CreateMahasiswa(model *models.Mahasiswa) error {
 func (r *MahasiswaRepository) FindAllMahasiswa(condtions string) (*[]models.Mahasiswa, error) {
 
 	var result []models.Mahasiswa
-	if err := r.db.Preload(clause.Associations).Order("nim").Find(&result, condtions).Error; err != nil {
+	if err := r.db.Preload(clause.Associations).Preload("PembimbingAkademik.Prodi").Order("nim").Find(&result, condtions).Error; err != nil {
 		return nil, err
 	}
 
@@ -73,6 +73,11 @@ func (r *MahasiswaRepository) FindLimit(data interface{}, condition, order strin
 	return r.db.Preload(clause.Associations).Order(order).Limit(limit).Find(data, condition).Error
 }
 
+func (r *MahasiswaRepository) FindMahasiswaPercepatan(data *[]models.Mahasiswa, prodiID uint, limit int, order string) error {
+	subQuery := r.db.Where("prodi_id = ?", prodiID).Model(&models.PembimbingAkademik{}).Select("id")
+	return r.db.Preload(clause.Associations).Order(order).Limit(limit).Find(data, "pembimbing_akademik_id IN (?)", subQuery).Error
+}
+
 func (r *MahasiswaRepository) UpdatePengaturan(model *[]models.Pengaturan) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		for _, item := range *model {
@@ -96,6 +101,11 @@ func (r *MahasiswaRepository) UpdateKelas() error {
 		return err
 	}
 
+	var prodi []models.Prodi
+	if err := r.db.Find(&prodi).Error; err != nil {
+		return err
+	}
+
 	jmlMahasiswa, _ := strconv.Atoi(jumlahMahasiswa.Value)
 	angkatanInt, _ := strconv.Atoi(angkatan.Value)
 
@@ -106,29 +116,33 @@ func (r *MahasiswaRepository) UpdateKelas() error {
 			return err
 		}
 
-		for _, item := range years {
-			var mahasiswa []models.Mahasiswa
-			if err := tx.Order("nim ASC").Find(&mahasiswa, "angkatan = ?", item).Error; err != nil {
-				return err
-			}
+		for _, p := range prodi {
+			subQuery := tx.Model(&models.PembimbingAkademik{}).Where("prodi_id = ?", p.ID).Select("id")
+			for _, item := range years {
+				var mahasiswa []models.Mahasiswa
+				if err := tx.Order("nim ASC").Find(&mahasiswa, "angkatan = ? AND pembimbing_akademik_id IN (?)", item, subQuery).Error; err != nil {
+					return err
+				}
 
-			classes := make(map[string][]models.Mahasiswa)
-			for i, item := range mahasiswa {
-				class := string(rune('A' + (i / jmlMahasiswa)))
-				classes[class] = append(classes[class], item)
-			}
+				classes := make(map[string][]models.Mahasiswa)
+				for i, item := range mahasiswa {
+					class := string(rune('A' + (i / jmlMahasiswa)))
+					classes[class] = append(classes[class], item)
+				}
 
-			for class, students := range classes {
-				for _, student := range students {
-					model := models.Mahasiswa{
-						ID:    student.ID,
-						Class: class,
-					}
-					if err := tx.Updates(&model).Error; err != nil {
-						return err
+				for class, students := range classes {
+					for _, student := range students {
+						model := models.Mahasiswa{
+							ID:    student.ID,
+							Class: class,
+						}
+						if err := tx.Updates(&model).Error; err != nil {
+							return err
+						}
 					}
 				}
 			}
+
 		}
 
 		return nil

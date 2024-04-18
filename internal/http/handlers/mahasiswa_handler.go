@@ -246,3 +246,14 @@ func (h *MahasiswaHandler) GetMahasiswaPercepatan(c *gin.Context) {
 
 	c.JSON(http.StatusOK, response.DATA_RES(resp))
 }
+
+func (h *MahasiswaHandler) GetProdiPercepatan(c *gin.Context) {
+	prodiUuid := c.Param("uuid")
+	resp, err := h.Service.GetProdiPercepatan(prodiUuid)
+	if err != nil {
+		utils.HandleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, response.DATA_RES(resp))
+}

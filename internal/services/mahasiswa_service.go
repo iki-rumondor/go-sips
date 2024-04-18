@@ -56,7 +56,7 @@ func (s *MahasiswaService) CreateMahasiswaCSV(userUuid, pathFile string) (*[]res
 	for _, line := range lines {
 		var pembimbing models.PembimbingAkademik
 		var pembimbingID uint
-		if err := s.Repo.First(&pembimbing, fmt.Sprintf("nama = '%s'", line[7])); err != nil {
+		if err := s.Repo.First(&pembimbing, fmt.Sprintf("nama = '%s' AND prodi_id = '%d'", line[7], user.Prodi.ID)); err != nil {
 			username := utils.GenerateRandomString(8)
 			pengguna := models.Pengguna{
 				Username: username,
@@ -270,12 +270,19 @@ func (s *MahasiswaService) GetAllMahasiswa(options map[string]string) (*[]respon
 	var resp []response.Mahasiswa
 
 	for _, item := range model {
+		var prodi models.Prodi
+		condition := fmt.Sprintf("id = '%d'", item.PembimbingAkademik.ProdiID)
+		if err := s.Repo.First(&prodi, condition); err != nil {
+			log.Println(err.Error())
+			return nil, response.SERVICE_INTERR
+		}
 		resp = append(resp, response.Mahasiswa{
 			Uuid:        item.Uuid,
 			Nim:         item.Nim,
 			Nama:        item.Nama,
 			Kelas:       item.Class,
 			Percepatan:  item.Percepatan,
+			Prodi:       prodi.Name,
 			Angkatan:    fmt.Sprintf("%d", item.Angkatan),
 			Ipk:         fmt.Sprintf("%.2f", item.Ipk),
 			TotalSks:    fmt.Sprintf("%d", item.TotalSks),
@@ -654,6 +661,54 @@ func (s *MahasiswaService) GetMahasiswaPercepatan() (*[]response.Mahasiswa, erro
 	var model []models.Mahasiswa
 
 	if err := s.Repo.FindLimit(&model, "percepatan = true", "ipk DESC", limit); err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
+	var resp []response.Mahasiswa
+
+	for _, item := range model {
+		resp = append(resp, response.Mahasiswa{
+			Uuid:        item.Uuid,
+			Nim:         item.Nim,
+			Nama:        item.Nama,
+			Kelas:       item.Class,
+			Percepatan:  item.Percepatan,
+			Angkatan:    fmt.Sprintf("%d", item.Angkatan),
+			Ipk:         fmt.Sprintf("%.2f", item.Ipk),
+			TotalSks:    fmt.Sprintf("%d", item.TotalSks),
+			JumlahError: fmt.Sprintf("%d", item.JumlahError),
+			Pembimbing: &response.Pembimbing{
+				Uuid: item.PembimbingAkademik.Uuid,
+				Nama: item.PembimbingAkademik.Nama,
+			},
+			CreatedAt: item.CreatedAt,
+			UpdatedAt: item.UpdatedAt,
+		})
+
+	}
+
+	return &resp, nil
+}
+
+func (s *MahasiswaService) GetProdiPercepatan(prodiUuid string) (*[]response.Mahasiswa, error) {
+	var prodi models.Prodi
+	condition := fmt.Sprintf("uuid = '%s'", prodiUuid)
+	if err := s.Repo.First(&prodi, condition); err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
+	var option models.Pengaturan
+	if err := s.Repo.First(&option, "name = 'maksimal_percepatan'"); err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
+	limit, _ := strconv.Atoi(option.Value)
+
+	var model []models.Mahasiswa
+	if err := s.Repo.FindMahasiswaPercepatan(&model, prodi.ID, limit, "ipk DESC, nim ASC"); err != nil {
 		log.Println(err.Error())
 		return nil, response.SERVICE_INTERR
 	}

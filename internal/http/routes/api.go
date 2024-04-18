@@ -26,6 +26,9 @@ func StartServer(handlers *config.Handlers) *gin.Engine {
 		public.GET("user/:uuid", handlers.AdminHandler.GetUser)
 		public.GET("mahasiswa", handlers.MahasiswaHandler.GetAll)
 		public.GET("percepatan", handlers.MahasiswaHandler.GetMahasiswaPercepatan)
+		public.GET("percepatan/prodi/:uuid", handlers.MahasiswaHandler.GetProdiPercepatan)
+		public.GET("prodi", handlers.AdminHandler.GetAllProdi)
+
 	}
 
 	admin := router.Group("api").Use(middleware.IsValidJWT())
@@ -51,7 +54,6 @@ func StartServer(handlers *config.Handlers) *gin.Engine {
 		admin.DELETE("pembimbing/:uuid", handlers.AdminHandler.DeletePembimbing)
 
 		admin.POST("prodi", handlers.AdminHandler.CreateProdi)
-		admin.GET("prodi", handlers.AdminHandler.GetAllProdi)
 		admin.GET("prodi/:uuid", handlers.AdminHandler.GetProdi)
 		admin.PUT("prodi/:uuid", handlers.AdminHandler.UpdateProdi)
 		admin.DELETE("prodi/:uuid", handlers.AdminHandler.DeleteProdi)

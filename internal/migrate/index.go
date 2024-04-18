@@ -18,6 +18,10 @@ func ReadTerminal(db *gorm.DB, args []string) {
 		if err := migrateDatabase(db); err != nil {
 			log.Fatal(err.Error())
 		}
+	case args[1] == "seed":
+		if err := seedDatabase(db); err != nil {
+			log.Fatal(err.Error())
+		}
 	default:
 		fmt.Println("Hello, Nice to meet you")
 	}
@@ -98,5 +102,37 @@ func migrateDatabase(db *gorm.DB) error {
 			return err
 		}
 	}
+	return nil
+}
+
+func seedDatabase(db *gorm.DB) error {
+	sisfor := models.Prodi{
+		Name:    "Sistem Informasi",
+		Kaprodi: "Muchlis Polin",
+		Pengguna: &models.Pengguna{
+			Username: "sis123",
+			Password: "sis123",
+			RoleID:   4,
+		},
+	}
+
+	pti := models.Prodi{
+		Name:    "Pendidikan Teknologi Informasi",
+		Kaprodi: "Arif Dwinanto",
+		Pengguna: &models.Pengguna{
+			Username: "pti123",
+			Password: "pti123",
+			RoleID:   4,
+		},
+	}
+
+	if err := db.Create(&sisfor).Error; err != nil {
+		return err
+	}
+
+	if err := db.Create(&pti).Error; err != nil {
+		return err
+	}
+
 	return nil
 }

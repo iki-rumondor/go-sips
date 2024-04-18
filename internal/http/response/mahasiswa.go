@@ -17,6 +17,7 @@ type Mahasiswa struct {
 	JumlahError string      `json:"jumlah_error"`
 	Percepatan  bool        `json:"percepatan"`
 	Pembimbing  *Pembimbing `json:"pembimbing"`
+	Prodi       string      `json:"prodi"`
 	CreatedAt   int64       `json:"created_at"`
 	UpdatedAt   int64       `json:"updated_at"`
 }
