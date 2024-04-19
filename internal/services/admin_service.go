@@ -390,6 +390,13 @@ func (s *AdminService) GetPenasihatDashboard(userUuid string) (map[string]interf
 		return nil, response.SERVICE_INTERR
 	}
 
+	var prodi models.Prodi
+	condition = fmt.Sprintf("id = '%d'", user.PembimbingAkademik.ProdiID)
+	if err := s.Repo.First(&prodi, condition); err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
 	var model models.Mahasiswa
 	var listAngkatan []string
 	var amountAngkatan []int
@@ -404,7 +411,7 @@ func (s *AdminService) GetPenasihatDashboard(userUuid string) (map[string]interf
 
 	for _, item := range listAngkatan {
 		var mahasiswa []models.Mahasiswa
-		condition = fmt.Sprintf("angkatan = '%s'", item)
+		condition = fmt.Sprintf("angkatan = '%s' AND pembimbing_akademik_id = '%d'", item, user.PembimbingAkademik.ID)
 		if err := s.Repo.Find(&mahasiswa, condition); err != nil {
 			log.Println(err.Error())
 			return nil, response.SERVICE_INTERR
@@ -432,6 +439,7 @@ func (s *AdminService) GetPenasihatDashboard(userUuid string) (map[string]interf
 		"amountAngkatan": amountAngkatan,
 		"do":             len(dropOut),
 		"percepatan":     len(percepatan),
+		"prodi":          prodi.Name,
 	}
 
 	return resp, nil

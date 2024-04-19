@@ -44,7 +44,7 @@ func freshDatabase(db *gorm.DB) error {
 		Nama: "ADMIN",
 		Pengguna: &[]models.Pengguna{
 			{
-				Username: "admin",
+				Username: "kajur",
 				Password: "123",
 			},
 		},

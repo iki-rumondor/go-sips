@@ -61,7 +61,7 @@ func (s *MahasiswaService) CreateMahasiswaCSV(userUuid, pathFile string) (*[]res
 			pengguna := models.Pengguna{
 				Username: username,
 				Password: username,
-				RoleID:   2,
+				RoleID:   3,
 			}
 
 			if err := s.Repo.Create(&pengguna); err != nil {
