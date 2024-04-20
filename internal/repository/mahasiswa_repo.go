@@ -74,8 +74,8 @@ func (r *MahasiswaRepository) FindLimit(data interface{}, condition, order strin
 }
 
 func (r *MahasiswaRepository) FindMahasiswaPercepatan(data *[]models.Mahasiswa, prodiID uint, limit int, order string) error {
-	subQuery := r.db.Where("percepatan = true AND prodi_id = ?", prodiID).Model(&models.PembimbingAkademik{}).Select("id")
-	return r.db.Preload(clause.Associations).Order(order).Limit(limit).Find(data, "pembimbing_akademik_id IN (?)", subQuery).Error
+	subQuery := r.db.Where("prodi_id = ?", prodiID).Model(&models.PembimbingAkademik{}).Select("id")
+	return r.db.Preload(clause.Associations).Order(order).Limit(limit).Find(data, "percepatan = true AND pembimbing_akademik_id IN (?)", subQuery).Error
 }
 
 
