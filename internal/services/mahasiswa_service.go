@@ -336,6 +336,13 @@ func (s *MahasiswaService) GetMahasiswaProdi(userUuid string) (*[]response.Mahas
 			Nama: item.Nama,
 		}
 
+		var prodi models.Prodi
+		condition := fmt.Sprintf("id = '%d'", item.ProdiID)
+		if err := s.Repo.First(&prodi, condition); err != nil {
+			log.Println(err.Error())
+			return nil, response.SERVICE_INTERR
+		}
+
 		for _, item := range *item.Mahasiswa {
 			resp = append(resp, response.Mahasiswa{
 				Uuid:        item.Uuid,
@@ -343,6 +350,7 @@ func (s *MahasiswaService) GetMahasiswaProdi(userUuid string) (*[]response.Mahas
 				Nama:        item.Nama,
 				Kelas:       item.Class,
 				Percepatan:  item.Percepatan,
+				Prodi:       prodi.Name,
 				Angkatan:    fmt.Sprintf("%d", item.Angkatan),
 				Ipk:         fmt.Sprintf("%.2f", item.Ipk),
 				TotalSks:    fmt.Sprintf("%d", item.TotalSks),
@@ -544,6 +552,12 @@ func (s *MahasiswaService) GetAllMahasiswaByPenasihat(userUuid string, options m
 
 	var resp []response.Mahasiswa
 	for _, item := range result {
+		var prodi models.Prodi
+		condition := fmt.Sprintf("id = '%d'", item.PembimbingAkademik.ProdiID)
+		if err := s.Repo.First(&prodi, condition); err != nil {
+			log.Println(err.Error())
+			return nil, response.SERVICE_INTERR
+		}
 
 		resp = append(resp, response.Mahasiswa{
 			Uuid:        item.Uuid,
@@ -551,6 +565,7 @@ func (s *MahasiswaService) GetAllMahasiswaByPenasihat(userUuid string, options m
 			Nama:        item.Nama,
 			Kelas:       item.Class,
 			Percepatan:  item.Percepatan,
+			Prodi:       prodi.Name,
 			JumlahError: fmt.Sprintf("%d", item.JumlahError),
 			Angkatan:    fmt.Sprintf("%d", item.Angkatan),
 			Ipk:         fmt.Sprintf("%.2f", item.Ipk),
@@ -658,16 +673,25 @@ func (s *MahasiswaService) GetMahasiswaPercepatan() (*[]response.Mahasiswa, erro
 
 	limit, _ := strconv.Atoi(option.Value)
 
-	var model []models.Mahasiswa
-
-	if err := s.Repo.FindLimit(&model, "percepatan = true", "ipk DESC", limit); err != nil {
+	var prodi []models.Prodi
+	if err := s.Repo.Find(&prodi, "", "id"); err != nil {
 		log.Println(err.Error())
 		return nil, response.SERVICE_INTERR
+	}
+	var mahasiswa []models.Mahasiswa
+
+	for _, item := range prodi {
+		var model []models.Mahasiswa
+		if err := s.Repo.FindMahasiswaPercepatan(&model, item.ID, limit, "ipk DESC"); err != nil {
+			log.Println(err.Error())
+			return nil, response.SERVICE_INTERR
+		}
+		mahasiswa = append(mahasiswa, model...)
 	}
 
 	var resp []response.Mahasiswa
 
-	for _, item := range model {
+	for _, item := range mahasiswa {
 		resp = append(resp, response.Mahasiswa{
 			Uuid:        item.Uuid,
 			Nim:         item.Nim,
