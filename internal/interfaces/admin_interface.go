@@ -31,6 +31,11 @@ type AdminHandlerInterface interface {
 	GetKajurDashboard(*gin.Context)
 	GetPengaturan(*gin.Context)
 	GetPengaturanByName(*gin.Context)
+
+	GetAllUsers(*gin.Context)
+	CreateKajur(*gin.Context)
+	UpdateUsername(*gin.Context)
+	UpdatePassword(*gin.Context)
 }
 
 type AdminServiceInterface interface {
@@ -57,6 +62,11 @@ type AdminServiceInterface interface {
 	GetKajurDashboard() (map[string]interface{}, error)
 	GetPengaturan() (*[]response.Pengaturan, error)
 	GetPengaturanByName(name string) (*response.Pengaturan, error)
+
+	FindAllUsers() (*[]response.User, error)
+	CreateKajur(req *request.Kajur) error
+	UpdateUsername(uuid string, req *request.UpdateUsername) error
+	UpdatePassword(uuid string, req *request.UpdatePassword) error
 }
 
 type AdminRepoInterface interface {

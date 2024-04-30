@@ -596,3 +596,100 @@ func (s *AdminService) GetPengaturanByName(name string) (*response.Pengaturan, e
 
 	return &resp, nil
 }
+
+func (s *AdminService) FindAllUsers() (*[]response.User, error) {
+	var model []models.Pengguna
+
+	if err := s.Repo.Find(&model, ""); err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
+	var resp []response.User
+	for _, item := range model {
+		resp = append(resp, response.User{
+			Uuid:     item.Uuid,
+			Username: item.Username,
+			Role:     item.Role.Nama,
+			RoleID:   item.Role.ID,
+		})
+	}
+
+	return &resp, nil
+}
+
+func (s *AdminService) CreateKajur(req *request.Kajur) error {
+	if req.Password != req.ConfirmPassword {
+		return response.BADREQ_ERR("Password tidak sama")
+	}
+
+	model := models.Pengguna{
+		Username: req.Username,
+		Password: req.Password,
+		RoleID:   req.RoleID,
+	}
+
+	if err := s.Repo.Create(&model); err != nil {
+		log.Println(err.Error())
+		if utils.IsErrorType(err) {
+			return err
+		}
+		return response.SERVICE_INTERR
+	}
+
+	return nil
+}
+
+func (s *AdminService) UpdateUsername(uuid string, req *request.UpdateUsername) error {
+	var user models.Pengguna
+	condition := fmt.Sprintf("uuid = '%s'", uuid)
+	if err := s.Repo.First(&user, condition); err != nil {
+		return response.SERVICE_INTERR
+	}
+
+	model := models.Pengguna{
+		ID:       user.ID,
+		Username: req.Username,
+	}
+
+	if err := s.Repo.Update(&model, ""); err != nil {
+		log.Println(err.Error())
+		if utils.IsErrorType(err) {
+			return err
+		}
+		return response.SERVICE_INTERR
+	}
+
+	return nil
+}
+
+func (s *AdminService) UpdatePassword(uuid string, req *request.UpdatePassword) error {
+	if req.NewPassword != req.ConfirmPassword {
+		return response.BADREQ_ERR("Password tidak sama")
+	}
+
+	var user models.Pengguna
+	condition := fmt.Sprintf("uuid = '%s'", uuid)
+	if err := s.Repo.First(&user, condition); err != nil {
+		return response.SERVICE_INTERR
+	}
+
+	if err := utils.ComparePassword(user.Password, req.CurrentPassword); err != nil {
+		return response.BADREQ_ERR("Password lama tidak sesuai")
+	}
+
+	model := models.Pengguna{
+		ID:       user.ID,
+		Password: req.NewPassword,
+	}
+
+	if err := s.Repo.Update(&model, ""); err != nil {
+		log.Println(err.Error())
+		if utils.IsErrorType(err) {
+			return err
+		}
+		return response.SERVICE_INTERR
+	}
+
+	return nil
+}

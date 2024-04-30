@@ -41,13 +41,7 @@ func freshDatabase(db *gorm.DB) error {
 	}
 
 	db.Create(&models.Role{
-		Nama: "ADMIN",
-		Pengguna: &[]models.Pengguna{
-			{
-				Username: "kajur",
-				Password: "123",
-			},
-		},
+		Nama: "KAJUR",
 	})
 
 	db.Create(&models.Role{
@@ -60,6 +54,16 @@ func freshDatabase(db *gorm.DB) error {
 
 	db.Create(&models.Role{
 		Nama: "KAPRODI",
+	})
+
+	db.Create(&models.Role{
+		Nama: "ADMIN",
+		Pengguna: &[]models.Pengguna{
+			{
+				Username: "admin",
+				Password: "123",
+			},
+		},
 	})
 
 	db.Create([]models.Pengaturan{
@@ -106,6 +110,14 @@ func migrateDatabase(db *gorm.DB) error {
 }
 
 func seedDatabase(db *gorm.DB) error {
+	db.Create(
+		&models.Pengguna{
+			Username: "kajur",
+			Password: "123",
+			RoleID:   1,
+		},
+	)
+
 	sisfor := models.Prodi{
 		Name:    "Sistem Informasi",
 		Kaprodi: "Muchlis Polin",

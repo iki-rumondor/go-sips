@@ -63,6 +63,11 @@ func StartServer(handlers *config.Handlers) *gin.Engine {
 		admin.GET("pengaturan", handlers.AdminHandler.GetPengaturan)
 		admin.GET("pengaturan/:name", handlers.AdminHandler.GetPengaturanByName)
 		admin.PUT("pengaturan", handlers.MahasiswaHandler.UpdatePengaturan)
+
+		admin.GET("users", handlers.AdminHandler.GetAllUsers)
+		admin.POST("kajur", handlers.AdminHandler.CreateKajur)
+		admin.PATCH("user/:uuid/username", handlers.AdminHandler.UpdateUsername)
+		admin.PATCH("user/:uuid/password", handlers.AdminHandler.UpdatePassword)
 	}
 
 	return router

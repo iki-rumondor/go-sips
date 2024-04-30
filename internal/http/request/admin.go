@@ -20,6 +20,13 @@ type Prodi struct {
 	Username string `json:"username" valid:"required~field username tidak ditemukan"`
 }
 
+type Kajur struct {
+	Username        string `json:"username" valid:"required~field username tidak ditemukan"`
+	Password        string `json:"password" valid:"required~field password tidak ditemukan"`
+	ConfirmPassword string `json:"confirm_password" valid:"required~field konfirmasi password tidak ditemukan"`
+	RoleID          uint   `json:"role_id" valid:"required~field role id tidak ditemukan"`
+}
+
 type KelasRule struct {
 	JumlahMahasiswa string `json:"amount" valid:"required~field Jumlah Mahasiswa tidak ditemukan, int~field Jumlah Mahasiswa harus berupa bilangan bulat, range(1|200)~field Jumlah Mahasiswa tidak valid"`
 }
@@ -37,4 +44,14 @@ type Pengaturan struct {
 	AngkatanKelas      string `json:"angkatan_kelas" valid:"required~field angkatan kelas tidak ditemukan, int~field angkatan kelas tidak valid, range(2000|3000)~field angkatan kelas tidak valid"`
 	JumlahMahasiswa    string `json:"jumlah_mahasiswa" valid:"required~field jumlah mahasiswa per kelas tidak ditemukan, int~field Jumlah Mahasiswa harus berupa bilangan bulat, range(1|200)~field Jumlah Mahasiswa tidak valid"`
 	MaksimalPercepatan string `json:"maksimal_percepatan" valid:"required~field maksimal percepatan tidak ditemukan, int~field Maksimal Mahasiswa Percepatan harus berupa bilangan bulat, range(1|200)~field Maksimal Mahasiswa Percepatan tidak valid"`
+}
+
+type UpdateUsername struct {
+	Username string `json:"username" valid:"required~field username tidak ditemukan"`
+}
+
+type UpdatePassword struct {
+	CurrentPassword string `json:"current_password" valid:"required~field password lama tidak ditemukan"`
+	NewPassword     string `json:"new_password" valid:"required~field password baru tidak ditemukan"`
+	ConfirmPassword string `json:"confirm_password" valid:"required~field konfirmasi password tidak ditemukan"`
 }

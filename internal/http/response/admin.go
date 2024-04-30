@@ -23,6 +23,7 @@ type User struct {
 	Uuid      string         `json:"uuid"`
 	Username  string         `json:"username"`
 	Role      string         `json:"role"`
+	RoleID    uint           `json:"role_id"`
 	Mahasiswa *DataMahasiswa `json:"mahasiswa"`
 	Penasihat *Pembimbing    `json:"penasihat"`
 }
