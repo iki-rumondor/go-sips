@@ -18,6 +18,7 @@ type Mahasiswa struct {
 	JumlahError          uint    `gorm:"not_null"`
 	Class                string  `gorm:"null;size:8"`
 	Percepatan           bool    `gorm:"not_null;size:8"`
+	Rekomendasi          bool    `gorm:"not_null"`
 	CreatedAt            int64   `gorm:"autoCreateTime:milli"`
 	UpdatedAt            int64   `gorm:"autoCreateTime:milli;autoUpdateTime:milli"`
 	PembimbingAkademik   *PembimbingAkademik

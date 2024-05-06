@@ -55,3 +55,8 @@ type UpdatePassword struct {
 	NewPassword     string `json:"new_password" valid:"required~field password baru tidak ditemukan"`
 	ConfirmPassword string `json:"confirm_password" valid:"required~field konfirmasi password tidak ditemukan"`
 }
+
+type RekomendasiMahasiswa struct {
+	UuidMahasiswa  string `json:"uuid_mahasiswa" valid:"required~field uuid mahasiswa tidak ditemukan"`
+	UuidPembimbing string `json:"uuid_pembimbing" valid:"required~field uuid pembimbing tidak ditemukan"`
+}

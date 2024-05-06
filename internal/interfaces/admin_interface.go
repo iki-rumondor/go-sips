@@ -36,6 +36,7 @@ type AdminHandlerInterface interface {
 	CreateKajur(*gin.Context)
 	UpdateUsername(*gin.Context)
 	UpdatePassword(*gin.Context)
+	RekomendasiMahasiswa(*gin.Context)
 }
 
 type AdminServiceInterface interface {
@@ -67,6 +68,8 @@ type AdminServiceInterface interface {
 	CreateKajur(req *request.Kajur) error
 	UpdateUsername(uuid string, req *request.UpdateUsername) error
 	UpdatePassword(uuid string, req *request.UpdatePassword) error
+	
+	RekomendasiMahasiswa(req *request.RekomendasiMahasiswa) error
 }
 
 type AdminRepoInterface interface {

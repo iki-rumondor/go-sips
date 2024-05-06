@@ -40,6 +40,8 @@ type MahasiswaServiceInterface interface {
 	GetMahasiswaByUserUuid(userUuid string) (*response.Mahasiswa, error)
 	GetAllMahasiswaByPenasihat(userUuid string, options map[string]string) (*[]response.Mahasiswa, error)
 	UpdatePengaturan(req *request.Pengaturan) error
+	SinkronPercepatan() error
+	SinkronKelas() error
 }
 
 type MahasiswaRepoInterface interface {

@@ -693,3 +693,36 @@ func (s *AdminService) UpdatePassword(uuid string, req *request.UpdatePassword) 
 
 	return nil
 }
+
+func (s *AdminService) RekomendasiMahasiswa(req *request.RekomendasiMahasiswa) error {
+	var pengguna models.Pengguna
+	condition := fmt.Sprintf("uuid = '%s'", req.UuidPembimbing)
+	if err := s.Repo.First(&pengguna, condition); err != nil {
+		return response.SERVICE_INTERR
+	}
+
+	var mahasiswa models.Mahasiswa
+	condition = fmt.Sprintf("pembimbing_akademik_id = '%d' AND uuid = '%s'", pengguna.PembimbingAkademik.ID, req.UuidMahasiswa)
+	if err := s.Repo.First(&mahasiswa, condition); err != nil {
+		return response.SERVICE_INTERR
+	}
+
+	if mahasiswa.Rekomendasi {
+		return response.BADREQ_ERR("Mahasiswa Sudah Direkomendasikan")
+	}
+
+	model := models.Mahasiswa{
+		ID:          mahasiswa.ID,
+		Rekomendasi: true,
+	}
+
+	if err := s.Repo.Update(&model, ""); err != nil {
+		log.Println(err.Error())
+		if utils.IsErrorType(err) {
+			return err
+		}
+		return response.SERVICE_INTERR
+	}
+
+	return nil
+}

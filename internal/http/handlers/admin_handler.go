@@ -376,3 +376,23 @@ func (h *AdminHandler) UpdatePassword(c *gin.Context) {
 
 	c.JSON(http.StatusOK, response.SUCCESS_RES("Password Berhasil Diperbarui"))
 }
+
+func (h *AdminHandler) RekomendasiMahasiswa(c *gin.Context) {
+	var body request.RekomendasiMahasiswa
+	if err := c.BindJSON(&body); err != nil {
+		utils.HandleError(c, response.BADREQ_ERR(err.Error()))
+		return
+	}
+
+	if _, err := govalidator.ValidateStruct(&body); err != nil {
+		utils.HandleError(c, response.BADREQ_ERR(err.Error()))
+		return
+	}
+
+	if err := h.Service.RekomendasiMahasiswa(&body); err != nil {
+		utils.HandleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, response.SUCCESS_RES("Mahasiswa Berhasil Direkomendasikan"))
+}

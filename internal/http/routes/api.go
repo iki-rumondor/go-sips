@@ -68,6 +68,7 @@ func StartServer(handlers *config.Handlers) *gin.Engine {
 		admin.POST("kajur", handlers.AdminHandler.CreateKajur)
 		admin.PATCH("user/:uuid/username", handlers.AdminHandler.UpdateUsername)
 		admin.PATCH("user/:uuid/password", handlers.AdminHandler.UpdatePassword)
+		admin.PATCH("mahasiswa/rekomendasi", handlers.AdminHandler.RekomendasiMahasiswa)
 	}
 
 	return router

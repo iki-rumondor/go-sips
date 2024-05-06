@@ -350,6 +350,7 @@ func (s *MahasiswaService) GetMahasiswaProdi(userUuid string) (*[]response.Mahas
 				Nama:        item.Nama,
 				Kelas:       item.Class,
 				Percepatan:  item.Percepatan,
+				Rekomendasi: item.Rekomendasi,
 				Prodi:       prodi.Name,
 				Angkatan:    fmt.Sprintf("%d", item.Angkatan),
 				Ipk:         fmt.Sprintf("%.2f", item.Ipk),
@@ -475,6 +476,7 @@ func (s *MahasiswaService) GetDataMahasiswa(nim string) (*response.Mahasiswa, er
 		Nama:        mahasiswa.Nama,
 		Kelas:       mahasiswa.Class,
 		Percepatan:  mahasiswa.Percepatan,
+		Rekomendasi: mahasiswa.Rekomendasi,
 		JumlahError: fmt.Sprintf("%d", mahasiswa.JumlahError),
 		Angkatan:    fmt.Sprintf("%d", mahasiswa.Angkatan),
 		Ipk:         fmt.Sprintf("%.2f", mahasiswa.Ipk),
@@ -509,6 +511,7 @@ func (s *MahasiswaService) GetMahasiswaByUserUuid(userUuid string) (*response.Ma
 		Nama:        result.Nama,
 		Kelas:       result.Class,
 		Percepatan:  result.Percepatan,
+		Rekomendasi: result.Rekomendasi,
 		JumlahError: fmt.Sprintf("%d", result.JumlahError),
 		Angkatan:    fmt.Sprintf("%d", result.Angkatan),
 		Ipk:         fmt.Sprintf("%.2f", result.Ipk),
@@ -565,6 +568,7 @@ func (s *MahasiswaService) GetAllMahasiswaByPenasihat(userUuid string, options m
 			Nama:        item.Nama,
 			Kelas:       item.Class,
 			Percepatan:  item.Percepatan,
+			Rekomendasi: item.Rekomendasi,
 			Prodi:       prodi.Name,
 			JumlahError: fmt.Sprintf("%d", item.JumlahError),
 			Angkatan:    fmt.Sprintf("%d", item.Angkatan),
@@ -646,9 +650,8 @@ func (s *MahasiswaService) SinkronKelas() error {
 }
 
 func (s *MahasiswaService) SinkronPercepatan() error {
-	var mahasiswa *[]models.Mahasiswa
-
-	if err := s.Repo.Find(&mahasiswa, "", "id"); err != nil {
+	mahasiswa, err := s.Repo.FindAllMahasiswa("")
+	if err != nil {
 		return response.SERVICE_INTERR
 	}
 
@@ -746,6 +749,7 @@ func (s *MahasiswaService) GetProdiPercepatan(prodiUuid string) (*[]response.Mah
 			Nama:        item.Nama,
 			Kelas:       item.Class,
 			Percepatan:  item.Percepatan,
+			Rekomendasi: item.Rekomendasi,
 			Angkatan:    fmt.Sprintf("%d", item.Angkatan),
 			Ipk:         fmt.Sprintf("%.2f", item.Ipk),
 			TotalSks:    fmt.Sprintf("%d", item.TotalSks),
