@@ -28,6 +28,8 @@ func StartServer(handlers *config.Handlers) *gin.Engine {
 		public.GET("percepatan", handlers.MahasiswaHandler.GetMahasiswaPercepatan)
 		public.GET("percepatan/prodi/:uuid", handlers.MahasiswaHandler.GetProdiPercepatan)
 		public.GET("prodi", handlers.AdminHandler.GetAllProdi)
+		public.GET("pengaturan", handlers.AdminHandler.GetPengaturan)
+		public.GET("pengaturan/:name", handlers.AdminHandler.GetPengaturanByName)
 
 	}
 
@@ -60,8 +62,6 @@ func StartServer(handlers *config.Handlers) *gin.Engine {
 
 		admin.POST("mahasiswa/kelas", handlers.AdminHandler.UpdateKelas)
 		admin.GET("classes", handlers.AdminHandler.GetClasses)
-		admin.GET("pengaturan", handlers.AdminHandler.GetPengaturan)
-		admin.GET("pengaturan/:name", handlers.AdminHandler.GetPengaturanByName)
 		admin.PUT("pengaturan", handlers.MahasiswaHandler.UpdatePengaturan)
 
 		admin.GET("users", handlers.AdminHandler.GetAllUsers)
