@@ -228,6 +228,24 @@ func (_m *MahasiswaRepoInterface) FindMahasiswaPercepatan(data *[]models.Mahasis
 	return r0
 }
 
+// FindPotensialDropout provides a mock function with given fields: data, pembimbingID
+func (_m *MahasiswaRepoInterface) FindPotensialDropout(data *[]models.Mahasiswa, pembimbingID uint) error {
+	ret := _m.Called(data, pembimbingID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FindPotensialDropout")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*[]models.Mahasiswa, uint) error); ok {
+		r0 = rf(data, pembimbingID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // First provides a mock function with given fields: data, condition
 func (_m *MahasiswaRepoInterface) First(data interface{}, condition string) error {
 	ret := _m.Called(data, condition)

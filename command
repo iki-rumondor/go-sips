@@ -1,0 +1,1 @@
+mockery --dir=internal/interfaces --name=MahasiswaRepoInterface --filename=mahasiswa_interface.go --output=internal/mocks

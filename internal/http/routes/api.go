@@ -38,6 +38,8 @@ func StartServer(handlers *config.Handlers) *gin.Engine {
 		admin.GET("mahasiswa/user/:userUuid", handlers.MahasiswaHandler.GetMahasiswaByUserUuid)
 		admin.GET("mahasiswa/prodi/:userUuid", handlers.MahasiswaHandler.GetMahasiswaProdi)
 		admin.GET("mahasiswa/penasihat/:userUuid", handlers.MahasiswaHandler.GetMahasiswaByPenasihat)
+		admin.GET("mahasiswa/potensial-do/:userUuid", handlers.MahasiswaHandler.GetPotensialDropout)
+
 		admin.GET("dashboard/penasihat/:userUuid", handlers.AdminHandler.GetPenasihatDashboard)
 		admin.GET("dashboard/kaprodi/:userUuid", handlers.AdminHandler.GetKaprodiDashboard)
 		admin.GET("dashboard/kajur", handlers.AdminHandler.GetKajurDashboard)
@@ -69,6 +71,9 @@ func StartServer(handlers *config.Handlers) *gin.Engine {
 		admin.PATCH("user/:uuid/username", handlers.AdminHandler.UpdateUsername)
 		admin.PATCH("user/:uuid/password", handlers.AdminHandler.UpdatePassword)
 		admin.PATCH("mahasiswa/rekomendasi", handlers.AdminHandler.RekomendasiMahasiswa)
+
+		admin.POST("message", handlers.MahasiswaHandler.CreatePesanMahasiswa)
+		admin.GET("message/:userUuid", handlers.MahasiswaHandler.GetPesanMahasiswa)
 	}
 
 	return router

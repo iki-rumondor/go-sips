@@ -257,3 +257,45 @@ func (h *MahasiswaHandler) GetProdiPercepatan(c *gin.Context) {
 
 	c.JSON(http.StatusOK, response.DATA_RES(resp))
 }
+
+func (h *MahasiswaHandler) CreatePesanMahasiswa(c *gin.Context) {
+	var body request.PesanMahasiswa
+	if err := c.BindJSON(&body); err != nil {
+		utils.HandleError(c, response.BADREQ_ERR(err.Error()))
+		return
+	}
+
+	if _, err := govalidator.ValidateStruct(&body); err != nil {
+		utils.HandleError(c, response.BADREQ_ERR(err.Error()))
+		return
+	}
+
+	if err := h.Service.CreatePesanMahasiswa(&body); err != nil {
+		utils.HandleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, response.SUCCESS_RES("Pesan Mahasiswa Berhasil Diperbarui"))
+}
+
+func (h *MahasiswaHandler) GetPotensialDropout(c *gin.Context) {
+	userUuid := c.Param("userUuid")
+	resp, err := h.Service.GetPotensialDropout(userUuid)
+	if err != nil {
+		utils.HandleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, response.DATA_RES(resp))
+}
+
+func (h *MahasiswaHandler) GetPesanMahasiswa(c *gin.Context) {
+	userUuid := c.Param("userUuid")
+	resp, err := h.Service.GetPesanMahasiswa(userUuid)
+	if err != nil {
+		utils.HandleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, response.DATA_RES(resp))
+}

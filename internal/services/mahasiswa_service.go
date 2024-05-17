@@ -766,3 +766,98 @@ func (s *MahasiswaService) GetProdiPercepatan(prodiUuid string) (*[]response.Mah
 
 	return &resp, nil
 }
+
+func (s *MahasiswaService) CreatePesanMahasiswa(req *request.PesanMahasiswa) error {
+	var mahasiswa models.Mahasiswa
+	condition := fmt.Sprintf("uuid = '%s'", req.MahasiswaUuid)
+	if err := s.Repo.First(&mahasiswa, condition); err != nil {
+		log.Println(err.Error())
+		return response.SERVICE_INTERR
+	}
+
+	var user models.Pengguna
+	condition = fmt.Sprintf("uuid = '%s'", req.PembimbingUuid)
+	if err := s.Repo.First(&user, condition); err != nil {
+		log.Println(err.Error())
+		return response.SERVICE_INTERR
+	}
+
+	model := models.PesanMahasiswa{
+		MahasiswaID:          mahasiswa.ID,
+		PembimbingAkademikID: user.PembimbingAkademik.ID,
+		Status:               req.Status,
+		Message:              req.Message,
+	}
+
+	if err := s.Repo.Create(&model); err != nil {
+		log.Println(err.Error())
+		return response.SERVICE_INTERR
+	}
+
+	return nil
+}
+
+func (s *MahasiswaService) GetPotensialDropout(userUuid string) (*[]response.Mahasiswa, error) {
+	var user models.Pengguna
+	condition := fmt.Sprintf("uuid = '%s'", userUuid)
+	if err := s.Repo.First(&user, condition); err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
+	var mahasiswa []models.Mahasiswa
+	if err := s.Repo.FindPotensialDropout(&mahasiswa, user.PembimbingAkademik.ID); err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
+	var resp []response.Mahasiswa
+
+	for _, item := range mahasiswa {
+		resp = append(resp, response.Mahasiswa{
+			Uuid:        item.Uuid,
+			Nim:         item.Nim,
+			Nama:        item.Nama,
+			Kelas:       item.Class,
+			Percepatan:  item.Percepatan,
+			Angkatan:    fmt.Sprintf("%d", item.Angkatan),
+			Ipk:         fmt.Sprintf("%.2f", item.Ipk),
+			TotalSks:    fmt.Sprintf("%d", item.TotalSks),
+			JumlahError: fmt.Sprintf("%d", item.JumlahError),
+			Pembimbing: &response.Pembimbing{
+				Uuid: item.PembimbingAkademik.Uuid,
+				Nama: item.PembimbingAkademik.Nama,
+			},
+			CreatedAt: item.CreatedAt,
+			UpdatedAt: item.UpdatedAt,
+		})
+
+	}
+
+	return &resp, nil
+}
+
+func (s *MahasiswaService) GetPesanMahasiswa(userUuid string) (*response.PesanMahasiswa, error) {
+	var user models.Pengguna
+	condition := fmt.Sprintf("uuid = '%s'", userUuid)
+	if err := s.Repo.First(&user, condition); err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
+	var pesan models.PesanMahasiswa
+	condition = fmt.Sprintf("mahasiswa_id = '%d'", user.Mahasiswa.ID)
+	if err := s.Repo.First(&pesan, condition); err != nil {
+		log.Println(err.Error())
+		return nil, response.SERVICE_INTERR
+	}
+
+	var resp = response.PesanMahasiswa{
+		Message:   pesan.Message,
+		Status:    pesan.Status,
+		CreatedAt: pesan.CreatedAt,
+		UpdatedAt: pesan.UpdatedAt,
+	}
+
+	return &resp, nil
+}

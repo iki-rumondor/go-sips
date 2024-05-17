@@ -22,6 +22,10 @@ type MahasiswaHandlerInterface interface {
 	GetMahasiswaByUserUuid(*gin.Context)
 	GetMahasiswaByPenasihat(*gin.Context)
 	UpdatePengaturan(*gin.Context)
+
+	GetPotensialDropout(*gin.Context)
+	CreatePesanMahasiswa(*gin.Context)
+	GetPesanMahasiswa(*gin.Context)
 }
 
 type MahasiswaServiceInterface interface {
@@ -42,6 +46,10 @@ type MahasiswaServiceInterface interface {
 	UpdatePengaturan(req *request.Pengaturan) error
 	SinkronPercepatan() error
 	SinkronKelas() error
+
+	CreatePesanMahasiswa(req *request.PesanMahasiswa) error
+	GetPotensialDropout(pembimbingUuid string) (*[]response.Mahasiswa, error)
+	GetPesanMahasiswa(userUuid string) (*response.PesanMahasiswa, error)
 }
 
 type MahasiswaRepoInterface interface {
@@ -62,4 +70,6 @@ type MahasiswaRepoInterface interface {
 	UpdatePercepatan() error
 	DeleteMahasiswaPengguna(data *[]models.Mahasiswa) error
 	Create(data interface{}) error
+
+	FindPotensialDropout(data *[]models.Mahasiswa, pembimbingID uint) error
 }

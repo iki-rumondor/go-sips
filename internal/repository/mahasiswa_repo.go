@@ -78,7 +78,6 @@ func (r *MahasiswaRepository) FindMahasiswaPercepatan(data *[]models.Mahasiswa, 
 	return r.db.Preload(clause.Associations).Order(order).Limit(limit).Find(data, "percepatan = true AND pembimbing_akademik_id IN (?)", subQuery).Error
 }
 
-
 func (r *MahasiswaRepository) UpdatePengaturan(model *[]models.Pengaturan) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		for _, item := range *model {
@@ -220,7 +219,7 @@ func (r *MahasiswaRepository) Create(data interface{}) error {
 func (r *MahasiswaRepository) DeleteMahasiswaPengguna(data *[]models.Mahasiswa) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		for _, item := range *data {
-			if err := r.db.Delete(item).Error; err != nil {
+			if err := r.db.Select(clause.Associations).Delete(item).Error; err != nil {
 				return err
 			}
 			if err := r.db.Delete(&models.Pengguna{}, "id = ?", item.PenggunaID).Error; err != nil {
@@ -230,4 +229,9 @@ func (r *MahasiswaRepository) DeleteMahasiswaPengguna(data *[]models.Mahasiswa) 
 
 		return nil
 	})
+}
+
+func (r *MahasiswaRepository) FindPotensialDropout(data *[]models.Mahasiswa, pembimbingID uint) error {
+	subQuery := r.db.Model(&models.PesanMahasiswa{}).Select("mahasiswa_id")
+	return r.db.Preload(clause.Associations).Find(data, "id NOT IN (?) AND pembimbing_akademik_id = ?", subQuery, pembimbingID).Error
 }
