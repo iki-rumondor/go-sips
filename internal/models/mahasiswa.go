@@ -23,6 +23,7 @@ type Mahasiswa struct {
 	UpdatedAt            int64   `gorm:"autoCreateTime:milli;autoUpdateTime:milli"`
 	PembimbingAkademik   *PembimbingAkademik
 	Pengguna             *Pengguna
+	PesanMahasiswa       *PesanMahasiswa
 }
 
 func (Mahasiswa) TableName() string {
